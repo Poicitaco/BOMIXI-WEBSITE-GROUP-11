@@ -1,0 +1,110 @@
+﻿@model List<ShopLaptop_v1.Models.Order>
+@{
+    ViewData["Title"] = "Quản lý đơn hàng";
+    string trangThaiLoc = ViewData["TrangThaiLoc"] as string ?? "";
+    string FormatTien(decimal so) => so.ToString("N0") + " VNĐ";
+    string MauTrangThai(string s) => s switch {
+        "ChoXacNhan" => "bg-yellow-900/30 text-yellow-400 border-yellow-900/30",
+        "DangXuLy"   => "bg-blue-900/30 text-blue-400 border-blue-900/30",
+        "DangGiao"   => "bg-purple-900/30 text-purple-400 border-purple-900/30",
+        "HoanThanh"  => "bg-green-900/30 text-green-400 border-green-900/30",
+        "DaHuy"      => "bg-red-900/30 text-red-400 border-red-900/30",
+        _ => "bg-[#252525] text-gray-400 border-[#252525]"
+    };
+    string TenTrangThai(string s) => s switch {
+        "ChoXacNhan" => "Chờ xác nhận", "DangXuLy" => "Đang xử lý",
+        "DangGiao" => "Đang giao", "HoanThanh" => "Hoàn thành", "DaHuy" => "Đã hủy", _ => s
+    };
+}
+
+<div class="flex gap-2 mb-6 flex-wrap">
+    @{
+        var cacTrangThai = new[] { ("", "Tất cả"), ("ChoXacNhan", "Chờ xác nhận"), ("DangXuLy", "Đang xử lý"),
+                                    ("DangGiao", "Đang giao"), ("HoanThanh", "Hoàn thành"), ("DaHuy", "Đã hủy") };
+    }
+    @foreach (var (giaTriLoc, nhan) in cacTrangThai)
+    {
+        <a asp-action="Index" asp-route-trangThai="@(giaTriLoc == "" ? null : giaTriLoc)"
+           class="font-['Space_Grotesk'] text-[10px] uppercase tracking-widest px-4 py-2 rounded-lg border transition-all @(trangThaiLoc == giaTriLoc ? "bg-accent-cyber-lime text-black border-accent-cyber-lime" : "border-[#252525] text-gray-400 hover:border-accent-cyber-lime/40 hover:text-white")">
+            @nhan
+        </a>
+    }
+</div>
+
+<div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl overflow-hidden">
+    @if (!Model.Any())
+    {
+        <div class="py-16 text-center">
+            <span class="material-symbols-outlined text-5xl text-[#252525] block mb-3">receipt_long</span>
+            <p class=" text-gray-600">Không có đơn hàng nào</p>
+        </div>
+    }
+    else
+    {
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-[#1A1A1A]">
+                        <th class="text-left px-6 py-3  text-[10px] uppercase tracking-widest text-gray-500">Mã đơn</th>
+                        <th class="text-left px-6 py-3  text-[10px] uppercase tracking-widest text-gray-500">Khách hàng</th>
+                        <th class="text-left px-6 py-3  text-[10px] uppercase tracking-widest text-gray-500">Tổng tiền</th>
+                        <th class="text-left px-6 py-3  text-[10px] uppercase tracking-widest text-gray-500">Ngày đặt</th>
+                        <th class="text-left px-6 py-3  text-[10px] uppercase tracking-widest text-gray-500">Trạng thái</th>
+                        <th class="text-left px-6 py-3  text-[10px] uppercase tracking-widest text-gray-500">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var dh in Model)
+                    {
+                        <tr class="border-b border-[#1A1A1A] hover:bg-[#111] transition-colors">
+                            <td class="px-6 py-4 font-['Space_Grotesk'] text-sm text-accent-cyber-lime font-bold">#@dh.Id</td>
+                            <td class="px-6 py-4">
+                                <p class=" text-sm text-white">@(dh.User?.Email?.Split('@')[0] ?? "Khách")</p>
+                                <p class=" text-xs text-gray-500">@dh.PhoneNumber</p>
+                            </td>
+                            <td class="px-6 py-4 font-['Space_Grotesk'] text-sm text-white font-bold">@FormatTien(dh.TotalAmount)</td>
+                            <td class="px-6 py-4  text-xs text-gray-400">@dh.OrderDate.ToString("dd/MM/yy HH:mm")</td>
+                            <td class="px-6 py-4">
+                                <span id="badge-@dh.Id" class="font-['Space_Grotesk'] text-[10px] tracking-widest uppercase px-2 py-1 rounded border @MauTrangThai(dh.Status)">@TenTrangThai(dh.Status)</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <select onchange="capNhatTrangThai(@dh.Id, this.value)"
+                                        class="bg-[#1A1A1A] border border-[#252525] text-gray-400 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:border-accent-cyber-lime ">
+                                    <option value="">Đổi trạng thái</option>
+                                    <option value="ChoXacNhan">Chờ xác nhận</option>
+                                    <option value="DangXuLy">Đang xử lý</option>
+                                    <option value="DangGiao">Đang giao</option>
+                                    <option value="HoanThanh">Hoàn thành</option>
+                                    <option value="DaHuy">Đã hủy</option>
+                                </select>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+async function capNhatTrangThai(id, trangThaiMoi) {
+    if (!trangThaiMoi) return;
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+    const res = await fetch('/Admin/QuanLyDonHang/CapNhatTrangThai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token || '' },
+        body: `id=${id}&trangThaiMoi=${trangThaiMoi}`
+    });
+    const data = await res.json();
+    if (data.success) {
+        const badge = document.getElementById('badge-' + id);
+        const mau = { 'ChoXacNhan': 'bg-yellow-900/30 text-yellow-400 border-yellow-900/30', 'DangXuLy': 'bg-blue-900/30 text-blue-400 border-blue-900/30', 'DangGiao': 'bg-purple-900/30 text-purple-400 border-purple-900/30', 'HoanThanh': 'bg-green-900/30 text-green-400 border-green-900/30', 'DaHuy': 'bg-red-900/30 text-red-400 border-red-900/30' };
+        const ten = { 'ChoXacNhan': 'Chờ xác nhận', 'DangXuLy': 'Đang xử lý', 'DangGiao': 'Đang giao', 'HoanThanh': 'Hoàn thành', 'DaHuy': 'Đã hủy' };
+        badge.className = "font-['Space_Grotesk'] text-[10px] tracking-widest uppercase px-2 py-1 rounded border " + (mau[trangThaiMoi] || '');
+        badge.textContent = ten[trangThaiMoi] || trangThaiMoi;
+    }
+}
+</script>
+@Html.AntiForgeryToken()
+}

@@ -1,0 +1,297 @@
+@model List<ShopLaptop_v1.Models.Product>
+@{
+    ViewData["Title"] = "So sánh sản phẩm & AI Phân tích";
+}
+
+<style>
+    .ai-input-fix {
+        background-color: #111 !important;
+        color: #fff !important;
+        border: 1px solid #252525 !important;
+    }
+    .ai-input-fix:focus {
+        border-color: #C6FF00 !important;
+        box-shadow: 0 0 15px rgba(198, 255, 0, 0.15) !important;
+    }
+    .spec-table {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+    }
+    .spec-table td, .spec-table th {
+        border-bottom: 1px solid #1A1A1A !important;
+        border-right: 1px solid #1A1A1A !important;
+    }
+    .spec-table th:last-child, .spec-table td:last-child {
+        border-right: none !important;
+    }
+    .compare-img-fix {
+        max-height: 160px !important;
+        max-width: 100% !important;
+        object-fit: contain !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
+</style>
+
+<div class="max-w-7xl mx-auto py-12 px-8">
+    <div class="flex items-center justify-between mb-10">
+        <div class="flex items-center gap-4">
+            <div class="w-14 h-14 bg-accent-cyber-lime rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(204,255,0,0.2)]">
+                <span class="material-symbols-outlined text-black text-3xl font-bold">compare_arrows</span>
+            </div>
+            <div>
+                <h1 class="font-['Space_Grotesk'] text-4xl font-black text-white uppercase tracking-tighter italic">So sánh & AI</h1>
+                <p class=" text-gray-500 text-xs tracking-widest uppercase mt-1">BOMIXI Comparison Engine v2.0</p>
+            </div>
+        </div>
+        
+        @if (Model.Any())
+        {
+            <form asp-action="XoaTatCa" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="font-['Space_Grotesk'] font-bold text-[10px] uppercase tracking-[0.2em] text-red-400 hover:text-white hover:bg-red-500/20 border border-red-500/20 px-6 py-3 rounded-xl transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">delete_sweep</span>
+                    Xóa tất cả
+                </button>
+            </form>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="bg-[#080808] border border-[#1A1A1A] rounded-3xl p-24 text-center flex flex-col items-center justify-center shadow-2xl relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none"></div>
+            <div class="w-32 h-32 bg-white/[0.03] rounded-full flex items-center justify-center mb-8 border border-white/[0.05] group-hover:scale-110 transition-transform duration-500">
+                <span class="material-symbols-outlined text-6xl text-gray-700">laptop_windows</span>
+            </div>
+            <h2 class="font-['Space_Grotesk'] text-3xl font-bold text-white mb-4">Danh sách đang trống</h2>
+            <p class="text-gray-500 mb-10 max-w-md leading-relaxed">Hãy chọn ít nhất 2 sản phẩm từ cửa hàng để chúng tôi giúp bạn phân tích chuyên sâu bằng AI.</p>
+            <a asp-controller="Home" asp-action="Index" class="bg-accent-cyber-lime text-black font-['Space_Grotesk'] font-black px-10 py-4 rounded-xl hover:shadow-[0_0_30px_rgba(204,255,0,0.4)] transition-all uppercase tracking-widest text-sm">
+                BẮT ĐẦU CHỌN MÁY
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="bg-[#080808] border border-[#1A1A1A] rounded-3xl overflow-hidden mb-16 shadow-2xl shadow-black/50">
+            <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-accent-cyber-lime/20 scrollbar-track-transparent">
+                <table class="w-full text-left  text-sm spec-table">
+                    <thead>
+                        <tr class="border-b-2 border-[#333]">
+                            <th class="p-10 bg-[#0D0D0D] text-gray-400 font-['Space_Grotesk'] tracking-widest text-[10px] uppercase w-64 sticky left-0 z-20 shadow-[8px_0_20px_rgba(0,0,0,0.8)]">Thông số kỹ thuật</th>
+                            @foreach (var sp in Model)
+                            {
+                                var hinhAnh = sp.Images.FirstOrDefault(i => i.IsMainImage)?.ImageUrl ?? sp.Images.FirstOrDefault()?.ImageUrl;
+                                <th class="p-10 relative group bg-[#0D0D0D] min-w-[340px]">
+                                    <form asp-action="Xoa" asp-route-id="@sp.Id" method="post" class="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="w-10 h-10 flex items-center justify-center bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-full transition-all border border-red-500/20">
+                                            <span class="material-symbols-outlined text-lg">close</span>
+                                        </button>
+                                    </form>
+                                    
+                                    <div class="aspect-video w-full bg-[#050505] rounded-2xl border border-[#252525] mb-8 flex items-center justify-center group-hover:border-accent-cyber-lime/30 transition-all shadow-inner relative overflow-hidden p-4">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-accent-cyber-lime/[0.02] to-transparent pointer-events-none"></div>
+                                        @if (!string.IsNullOrEmpty(hinhAnh))
+                                        {
+                                            <img src="@hinhAnh" class="compare-img-fix drop-shadow-[0_15px_30px_rgba(0,0,0,0.8)] group-hover:scale-110 transition-all duration-700" />
+                                        }
+                                    </div>
+                                    <h3 class="font-['Space_Grotesk'] text-2xl font-bold text-white mb-3 line-clamp-2 min-h-[4rem] leading-tight">@sp.Name</h3>
+                                    <div class="flex items-center justify-between border-t border-[#252525] pt-4">
+                                        <p class="text-accent-cyber-lime font-black text-2xl tracking-tighter">
+                                            @{
+                                                var v = sp.Variants.FirstOrDefault();
+                                                if (v != null)
+                                                {
+                                                    @((v.DiscountPrice ?? v.Price).ToString("N0"))<span> VNĐ</span>
+                                                }
+                                            }
+                                        </p>
+                                        <span class="text-[9px] text-gray-500 border border-gray-800 px-2 py-1 rounded uppercase tracking-[0.2em] font-bold">In Stock</span>
+                                    </div>
+                                </th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-300">
+                        @{
+                            var specs = new[] {
+                                ("Thương hiệu", "Hãng sản xuất"),
+                                ("CPU", "Bộ vi xử lý (CPU)"),
+                                ("RAM", "Bộ nhớ trong (RAM)"),
+                                ("Storage", "Ổ cứng lưu trữ"),
+                                ("GPU", "Card đồ họa (GPU)"),
+                                ("Screen", "Màn hình hiển thị")
+                            };
+                            int rowIdx = 0;
+                        }
+                        
+                        @foreach (var spec in specs)
+                        {
+                            <tr class="@(rowIdx % 2 == 0 ? "bg-[#0A0A0A]" : "bg-[#080808]") group transition-colors">
+                                <td class="p-10 text-gray-500 font-['Space_Grotesk'] text-[11px] uppercase tracking-[0.15em] sticky left-0 z-10 @(rowIdx % 2 == 0 ? "bg-[#0A0A0A]" : "bg-[#080808]") shadow-[8px_0_20px_rgba(0,0,0,0.8)] border-r border-[#1A1A1A] group-hover:text-gray-300 transition-colors">@spec.Item2</td>
+                                @foreach (var sp in Model)
+                                {
+                                    var v = sp.Variants.FirstOrDefault();
+                                    string val = spec.Item1 switch {
+                                        "Thương hiệu" => sp.Category?.Name ?? "-",
+                                        "CPU" => v?.CPU ?? "-",
+                                        "RAM" => v?.RAM ?? "-",
+                                        "Storage" => v?.Storage ?? "-",
+                                        "GPU" => v?.GPU ?? "-",
+                                        "Screen" => v?.Screen ?? "-",
+                                        _ => "-"
+                                    };
+                                    <td class="p-10  group-hover:text-white transition-colors border-l border-[#1A1A1A] text-[15px] leading-relaxed">@val</td>
+                                }
+                            </tr>
+                            rowIdx++;
+                        }
+                        
+                        <tr class="bg-[#0D0D0D]">
+                            <td class="p-10 text-gray-500 font-['Space_Grotesk'] text-[11px] uppercase tracking-[0.15em] sticky left-0 z-10 bg-[#0D0D0D] shadow-[8px_0_20px_rgba(0,0,0,0.8)] border-r border-[#1A1A1A]">Hành động</td>
+                            @foreach (var sp in Model)
+                            {
+                                <td class="p-10 border-l border-[#1A1A1A]">
+                                    <a href="/Home/ChiTiet/@sp.Id" class="inline-flex items-center gap-3 bg-white/[0.03] hover:bg-accent-cyber-lime hover:text-black text-white px-8 py-4 rounded-2xl transition-all text-xs font-['Space_Grotesk'] uppercase tracking-[0.2em] w-full justify-center border border-white/10 hover:border-accent-cyber-lime shadow-xl">
+                                        <span class="material-symbols-outlined text-lg">visibility</span>
+                                        XEM CHI TIẾT
+                                    </a>
+                                </td>
+                            }
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @if (Model.Count >= 2)
+        {
+            <div class="bg-[#080808] border border-[#1A1A1A] rounded-3xl overflow-hidden shadow-2xl relative group mb-20">
+                <div class="absolute inset-0 bg-gradient-to-br from-accent-cyber-lime/[0.05] to-transparent pointer-events-none"></div>
+                <div class="p-12 relative">
+                    <div class="flex flex-col gap-10">
+                        <div class="w-full">
+                            <div class="flex flex-col md:flex-row gap-8 items-center mb-8">
+                                <div class="w-20 h-20 bg-accent-cyber-lime/10 border border-accent-cyber-lime/20 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-[0_0_20px_rgba(204,255,0,0.1)]">
+                                    <span class="material-symbols-outlined text-4xl text-accent-cyber-lime animate-pulse">psychology</span>
+                                </div>
+                                <div>
+                                    <h2 class="font-['Space_Grotesk'] text-3xl font-bold text-white mb-2">Trợ lý AI Phân tích</h2>
+                                    <p class=" text-gray-400 leading-relaxed">Hãy mô tả nhu cầu sử dụng của bạn. AI của BOMIXI sẽ phân tích dựa trên cấu hình thực tế để đưa ra lời khuyên tốt nhất.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                                <div class="lg:col-span-3">
+                                    <label class="font-['Space_Grotesk'] text-[10px] uppercase tracking-[0.2em] text-gray-500 block mb-3 font-bold">Nhu cầu cụ thể của bạn</label>
+                                    <textarea id="ai-needs" rows="3" 
+                                              placeholder="Ví dụ: Mình là lập trình viên, cần máy chạy nhiều máy ảo và thỉnh thoảng render video. Ưu tiên máy có màn hình đẹp và build chắc chắn..." 
+                                              class="ai-input-fix w-full rounded-2xl px-6 py-5 outline-none transition-all  leading-relaxed shadow-inner text-sm"></textarea>
+                                </div>
+
+                                <div class="flex items-end">
+                                    <button id="btn-ai-analyze" class="w-full bg-accent-cyber-lime text-black font-['Space_Grotesk'] font-black px-8 py-5 rounded-2xl hover:shadow-[0_0_30px_rgba(204,255,0,0.4)] transition-all flex items-center justify-center gap-4 uppercase tracking-widest text-sm h-[68px]">
+                                        <span class="material-symbols-outlined font-bold">auto_awesome</span>
+                                        PHÂN TÍCH VỚI AI
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="w-full min-h-[200px] bg-black/40 rounded-3xl border border-[#1A1A1A] p-10 hidden" id="ai-result-container">
+                            <div id="ai-loading" class="flex flex-col items-center justify-center h-full py-20">
+                                <div class="w-16 h-16 border-4 border-accent-cyber-lime/10 border-t-accent-cyber-lime rounded-full animate-spin mb-6"></div>
+                                <p class="font-['Space_Grotesk'] text-accent-cyber-lime animate-pulse tracking-[0.3em] uppercase text-xs font-bold">Hệ thống đang phân tích dữ liệu...</p>
+                            </div>
+                            
+                            <div id="ai-content" class=" text-gray-300 leading-relaxed space-y-6 prose prose-invert max-w-none 
+                                prose-p:text-gray-400 prose-p:leading-loose
+                                prose-headings:text-white prose-headings:font-['Space_Grotesk'] prose-headings:tracking-tight
+                                prose-strong:text-accent-cyber-lime prose-strong:font-bold
+                                prose-table:border prose-table:border-[#222] prose-th:bg-[#111] prose-th:p-4 prose-td:p-4 prose-td:border-[#222]">
+                                <!-- AI Content will be injected here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        document.getElementById('btn-ai-analyze')?.addEventListener('click', async function() {
+            const btn = this;
+            const container = document.getElementById('ai-result-container');
+            const loading = document.getElementById('ai-loading');
+            const content = document.getElementById('ai-content');
+            
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            container.classList.remove('hidden');
+            loading.classList.remove('hidden');
+            content.classList.add('hidden');
+            content.innerHTML = '';
+            
+            const needs = document.getElementById('ai-needs').value;
+            
+            try {
+                const response = await fetch('/SoSanh/PhanTichAI', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: `nhuCau=${encodeURIComponent(needs)}`
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("AI Analysis Response:", data);
+                
+                loading.classList.add('hidden');
+                content.classList.remove('hidden');
+
+                if (data.success) {
+                    content.innerHTML = marked.parse(data.content);
+                    // Scroll to result
+                    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    content.innerHTML = `
+                        <div class="bg-red-900/20 text-red-400 p-8 rounded-3xl border border-red-900/40 ">
+                            <div class="flex items-center gap-3 mb-4">
+                                <span class="material-symbols-outlined">error</span>
+                                <span class="font-bold uppercase tracking-widest text-sm">Lỗi Hệ Thống AI</span>
+                            </div>
+                            <p class="leading-relaxed opacity-80">${data.message || 'Không thể nhận phản hồi từ AI.'}</p>
+                            <div class="mt-6 pt-6 border-t border-red-900/20">
+                                <p class="text-xs uppercase tracking-widest opacity-50">Gợi ý: Kiểm tra API Key trong cấu hình hệ thống (appsettings.json).</p>
+                            </div>
+                        </div>`;
+                }
+            } catch (error) {
+                console.error("AI Analysis Error:", error);
+                loading.classList.add('hidden');
+                content.classList.remove('hidden');
+                content.innerHTML = `
+                    <div class="bg-amber-900/20 text-amber-400 p-8 rounded-3xl border border-amber-900/40 ">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="material-symbols-outlined">wifi_off</span>
+                            <span class="font-bold uppercase tracking-widest text-sm">Lỗi Kết Nối</span>
+                        </div>
+                        <p class="leading-relaxed opacity-80">Không thể kết nối đến máy chủ AI của BOMIXI. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau ít phút.</p>
+                    </div>`;
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        });
+    </script>
+}

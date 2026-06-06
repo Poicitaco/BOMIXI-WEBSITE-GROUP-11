@@ -1,0 +1,528 @@
+@model ShopLaptop_v1.ViewModels.TrangChuViewModel
+@{
+    ViewData["Title"] = "Laptop Collection";
+    string FormatTien(decimal so) => so.ToString("N0") + " VNĐ";
+}
+<style>
+/* Nút Hero */
+.btn-hero-primary {
+    background: #00FF66; color: #000;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 900;
+    font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 1rem 2.5rem;
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    transition: filter 0.2s;
+}
+.btn-hero-primary:hover { filter: brightness(1.2); }
+
+.btn-hero-outline {
+    background: transparent; color: #00FF66;
+    border: 1px solid #00FF66;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 900;
+    font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 1rem 2.5rem;
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    transition: background 0.2s, color 0.2s;
+}
+.btn-hero-outline:hover { background: rgba(0,255,102,0.1); }
+
+/* Custom Select Dropdown */
+.custom-select {
+    width: 100%;
+    background-color: #0a0a0a;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid #222;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2300FF66' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1.2em 1.2em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.custom-select:hover {
+    border-color: #444;
+}
+.custom-select:focus {
+    border-color: #00FF66;
+    box-shadow: 0 0 15px rgba(0,255,102,0.15);
+}
+
+/* Pagination Custom */
+.page-link-custom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    background-color: #111;
+    color: #6b7280;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid #222;
+    transform: skewX(-10deg);
+    transition: all 0.2s;
+    text-decoration: none;
+}
+.page-link-custom:hover { background-color: #222; color: #fff; }
+.page-link-custom.active { background-color: #00FF66; color: #000; border-color: #00FF66; }
+.page-link-custom span { transform: skewX(10deg); }
+</style>
+
+<!-- HERO SECTION -->
+<section class="relative h-[650px] flex items-center justify-center overflow-hidden border-b border-[#1a1a1a]">
+    <video autoplay class="absolute inset-0 w-full h-full object-cover opacity-60" loop muted>
+        <source src="https://pub-c81cd288a1ce41e0902f9cf43fb226d1.r2.dev/dreamina-2026-04-30-6557-gentle%20movement%20(online-video-cutter.com).mp4" type="video/mp4"/>
+    </video>
+    <div class="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent"></div>
+    <div class="relative z-10 text-center px-4 max-w-5xl">
+        <h1 class="font-['Space_Grotesk'] text-5xl md:text-7xl font-black text-white mb-8 tracking-tighter uppercase drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] leading-tight">
+            NEW ERA OF DESIGN<br/>STARTS NOW
+        </h1>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10">
+            <button onclick="document.getElementById('gian-hang').scrollIntoView({ behavior: 'smooth', block: 'start' })" class="btn-hero-primary shadow-[0_0_25px_rgba(0,255,102,0.3)]">Khám phá ngay</button>
+            <button onclick="document.getElementById('flash-sale').scrollIntoView({ behavior: 'smooth', block: 'start' })" class="btn-hero-outline">Xem khuyến mãi</button>
+        </div>
+    </div>
+    
+    <!-- Trust Row -->
+    <div class="absolute bottom-6 w-full max-w-[1440px] px-8 flex justify-center md:justify-between gap-4 border-t border-[#1a1a1a] pt-5 hidden md:flex">
+        <div class="flex items-center gap-2 text-gray-300 font-['Space_Grotesk'] text-[11px] font-bold uppercase tracking-widest">
+            <span class="material-symbols-outlined text-[#00FF66] text-lg">verified</span>
+            Bảo hành 24 tháng
+        </div>
+        <div class="flex items-center gap-2 text-gray-300 font-['Space_Grotesk'] text-[11px] font-bold uppercase tracking-widest">
+            <span class="material-symbols-outlined text-[#00FF66] text-lg">local_shipping</span>
+            Giao hàng hỏa tốc
+        </div>
+        <div class="flex items-center gap-2 text-gray-300 font-['Space_Grotesk'] text-[11px] font-bold uppercase tracking-widest">
+            <span class="material-symbols-outlined text-[#00FF66] text-lg">keyboard_return</span>
+            Đổi trả 1-1 30 ngày
+        </div>
+    </div>
+</section>
+
+<!-- MAIN WRAPPER -->
+<div class="max-w-[1440px] mx-auto px-8 py-10">
+    
+    <!-- 3 BANNERS GÓC TRÊN CÙNG -->
+    @if (Model.DanhSachBanner != null && Model.DanhSachBanner.Any())
+    {
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            @foreach (var banner in Model.DanhSachBanner.Take(3))
+            {
+                <a href="@(banner.DuongDanLink ?? "#")" class="block relative rounded-2xl overflow-hidden h-[200px] border border-[#222] group">
+                    <img src="@banner.DuongDanAnh" alt="@banner.TieuDe" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-5">
+                        <h3 class="text-white font-['Space_Grotesk'] font-bold text-lg uppercase tracking-wider">@banner.TieuDe</h3>
+                        @if (!string.IsNullOrEmpty(banner.NhanTag))
+                        {
+                            <p class="text-gray-300 text-xs">@banner.NhanTag</p>
+                        }
+                    </div>
+                </a>
+            }
+        </div>
+    }
+
+    <div class="flex flex-col lg:flex-row gap-10">
+        <div class="w-full">
+            <!-- FLASH SALE KHU VỰC ĐẶC BIỆT -->
+            @if (Model.DanhSachFlashSale != null && Model.DanhSachFlashSale.Any())
+            {
+                <div id="flash-sale" class="mb-14 bg-gradient-to-r from-[#0a0a0a] to-[#111] border border-[#222] rounded-2xl p-6 md:p-8 relative overflow-hidden scroll-mt-24">
+                    <!-- Hiệu ứng Neon phía sau -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-[#00FF66] opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 w-64 h-64 bg-[#ff5722] opacity-5 blur-[100px] rounded-full pointer-events-none"></div>
+
+                    <div class="flex items-center justify-between mb-8 relative z-10">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-[#00FF66] text-3xl animate-pulse">bolt</span>
+                            <h2 class="font-['Space_Grotesk'] text-2xl font-black text-white uppercase italic tracking-tighter">
+                                Flash Sale <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#00FF66] to-[#00cc55]">Đang Diễn Ra</span>
+                            </h2>
+                        </div>
+                        <!-- Coundown ảo (Chỉ để trang trí hoặc dùng JS chạy sau) -->
+                        <div class="hidden sm:flex items-center gap-2 font-['Space_Grotesk'] text-lg font-bold">
+                            <div class="bg-black text-[#00FF66] px-3 py-1 rounded border border-[#00FF66]/30">02</div>
+                            <span class="text-gray-500">:</span>
+                            <div class="bg-black text-[#00FF66] px-3 py-1 rounded border border-[#00FF66]/30">45</div>
+                            <span class="text-gray-500">:</span>
+                            <div class="bg-black text-[#00FF66] px-3 py-1 rounded border border-[#00FF66]/30">12</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 relative z-10">
+                        @foreach (var sp in Model.DanhSachFlashSale)
+                        {
+                            <div class="bg-[#050505] rounded-xl overflow-hidden border border-[#222] flex flex-col group hover:border-[#ff5722]/50 transition-colors duration-300">
+                                <!-- Ảnh sản phẩm -->
+                                <div class="relative bg-white aspect-square p-4 flex items-center justify-center">
+                                    @if (sp.DangKhuyenMai)
+                                    {
+                                        <!-- Huy hiệu Hot -->
+                                        <div class="absolute top-3 left-3 bg-gradient-to-r from-[#ff5722] to-[#ff1100] text-white text-[11px] font-black px-2.5 py-1 rounded shadow-lg z-10 flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-[12px]">local_fire_department</span>
+                                            -@sp.PhanTramGiam%
+                                        </div>
+                                    }
+                                    <a asp-action="ChiTiet" asp-route-id="@sp.MaSanPham" class="block w-full h-full">
+                                        <img src="@sp.HinhAnh" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" alt="@sp.TenSanPham" />
+                                    </a>
+                                </div>
+                                
+                                <!-- Nội dung -->
+                                <div class="p-4 flex flex-col flex-grow">
+                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1.5">@sp.TenDanhMuc</p>
+                                    <a asp-action="ChiTiet" asp-route-id="@sp.MaSanPham" class="text-white font-bold text-[13px] line-clamp-2 leading-snug hover:text-[#00FF66] transition-colors h-10 mb-3">
+                                        @sp.TenSanPham
+                                    </a>
+                                    
+                                    <div class="mb-4">
+                                        <div class="text-[#00FF66] font-black text-[15px]">@FormatTien(sp.GiaThap)</div>
+                                        @if (sp.DangKhuyenMai)
+                                        {
+                                            <div class="text-gray-500 text-[11px] line-through">@FormatTien(sp.GiaNiemYet)</div>
+                                        }
+                                    </div>
+                                    
+                                    <div class="mt-auto">
+                                        <button onclick="themVaoGioHang(@sp.MaBienTheChinhId, this)" class="w-full bg-[#111] border border-[#333] hover:bg-[#ff5722] hover:border-[#ff5722] text-white px-3.5 py-2.5 rounded flex justify-center items-center gap-2 transition-all">
+                                            <span class="material-symbols-outlined text-[16px]">shopping_cart_checkout</span>
+                                            <span class="text-[11px] font-black uppercase tracking-widest">SĂN NGAY</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div id="gian-hang" class="flex flex-col lg:flex-row gap-10 scroll-mt-24">
+        
+        <!-- SIDEBAR CHÍNH XÁC NHƯ ẢNH -->
+        <aside class="w-full lg:w-[260px] flex-shrink-0">
+            <div class="sticky top-28 bg-[#050505] border border-[#1a1a1a] rounded-2xl p-5 shadow-2xl">
+                <div class="mb-2">
+                    <div class="flex items-center justify-between mb-6 border-b border-[#1a1a1a] pb-4">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[#00FF66]">tune</span>
+                            <h3 class="font-['Space_Grotesk'] text-[13px] font-black uppercase tracking-[0.1em] text-white">TRẠM LỌC</h3>
+                        </div>
+                        <button type="button" onclick="clearFilters()" class="text-[10px] text-gray-500 hover:text-[#ff5722] transition-colors uppercase tracking-widest font-bold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">filter_alt_off</span> Xóa
+                        </button>
+                    </div>
+                    
+                    <form action="/" method="get" id="filterForm">
+                        <input type="hidden" name="tuKhoa" value="@Model.TuKhoa" />
+
+                        <!-- Hãng sản xuất (Pills) -->
+                        <div class="mb-7 border-b border-[#1a1a1a] pb-6">
+                            <h4 class="text-[10px] text-gray-500 font-bold mb-4 uppercase tracking-widest flex items-center justify-between">
+                                HÃNG SẢN XUẤT <span class="material-symbols-outlined text-[14px]">branding_watermark</span>
+                            </h4>
+                            <div class="flex flex-wrap gap-2">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="danhMuc" value="" onchange="applyAjaxFilter()" checked="@(string.IsNullOrEmpty(Model.DanhMucDangChon))" class="peer hidden" /> 
+                                    <div class="px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-widest rounded-lg border border-[#333] bg-[#111] text-gray-400 peer-checked:bg-gradient-to-r peer-checked:from-[#00FF66] peer-checked:to-[#00cc55] peer-checked:text-black peer-checked:border-transparent hover:border-[#00FF66]/50 hover:text-white transition-all shadow-sm">
+                                        Tất cả
+                                    </div>
+                                </label>
+                                @foreach (var dm in Model.DanhSachDanhMuc)
+                                {
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="danhMuc" value="@dm.Slug" onchange="applyAjaxFilter()" checked="@(Model.DanhMucDangChon == dm.Slug)" class="peer hidden" /> 
+                                        <div class="px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-widest rounded-lg border border-[#333] bg-[#111] text-gray-400 peer-checked:bg-gradient-to-r peer-checked:from-[#00FF66] peer-checked:to-[#00cc55] peer-checked:text-black peer-checked:border-transparent hover:border-[#00FF66]/50 hover:text-white transition-all shadow-sm">
+                                            @dm.Name
+                                        </div>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Dropdowns -->
+                        <div class="mb-5">
+                            <h4 class="text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest">KHOẢNG GIÁ</h4>
+                            <select name="khoangGia" onchange="applyAjaxFilter()" class="custom-select">
+                                @if (string.IsNullOrEmpty(Model.KhoangGia)) { <option value="" selected>Tất cả mức giá</option> } else { <option value="">Tất cả mức giá</option> }
+                                @if (Model.KhoangGia == "duoi-15") { <option value="duoi-15" selected>Dưới 15 triệu</option> } else { <option value="duoi-15">Dưới 15 triệu</option> }
+                                @if (Model.KhoangGia == "15-20") { <option value="15-20" selected>15 - 20 triệu</option> } else { <option value="15-20">15 - 20 triệu</option> }
+                                @if (Model.KhoangGia == "20-25") { <option value="20-25" selected>20 - 25 triệu</option> } else { <option value="20-25">20 - 25 triệu</option> }
+                                @if (Model.KhoangGia == "25-30") { <option value="25-30" selected>25 - 30 triệu</option> } else { <option value="25-30">25 - 30 triệu</option> }
+                                @if (Model.KhoangGia == "tren-30") { <option value="tren-30" selected>Trên 30 triệu</option> } else { <option value="tren-30">Trên 30 triệu</option> }
+                            </select>
+                        </div>
+
+                        <div class="mb-5">
+                            <h4 class="text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest">BỘ VI XỬ LÝ (CPU)</h4>
+                            <select name="cpu" onchange="applyAjaxFilter()" class="custom-select">
+                                @if (string.IsNullOrEmpty(Model.CPU)) { <option value="" selected>Tất cả CPU</option> } else { <option value="">Tất cả CPU</option> }
+                                @foreach (var c in new[] { "i3", "i5", "i7", "i9", "Ryzen 3", "Ryzen 5", "Ryzen 7", "Ryzen 9", "M1", "M2", "M3" })
+                                {
+                                    if (Model.CPU == c) { <option value="@c" selected>@c</option> } else { <option value="@c">@c</option> }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-5">
+                            <h4 class="text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest">DUNG LƯỢNG RAM</h4>
+                            <select name="ram" onchange="applyAjaxFilter()" class="custom-select">
+                                @if (string.IsNullOrEmpty(Model.RAM)) { <option value="" selected>Tất cả RAM</option> } else { <option value="">Tất cả RAM</option> }
+                                @foreach (var r in new[] { "4GB", "8GB", "16GB", "32GB", "64GB" })
+                                {
+                                    if (Model.RAM == r) { <option value="@r" selected>@r</option> } else { <option value="@r">@r</option> }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-5">
+                            <h4 class="text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest">CARD ĐỒ HỌA (VGA)</h4>
+                            <select name="vga" onchange="applyAjaxFilter()" class="custom-select">
+                                @if (string.IsNullOrEmpty(Model.VGA)) { <option value="" selected>Tất cả VGA</option> } else { <option value="">Tất cả VGA</option> }
+                                @foreach (var v in new[] { "NVIDIA RTX", "NVIDIA GTX", "AMD Radeon", "Intel Iris", "Apple GPU" })
+                                {
+                                    if (Model.VGA == v) { <option value="@v" selected>@v</option> } else { <option value="@v">@v</option> }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-5">
+                            <h4 class="text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest">MÀN HÌNH</h4>
+                            <select name="doPhanGiai" onchange="applyAjaxFilter()" class="custom-select">
+                                <option value="">Tất cả màn hình</option>
+                                <option value="14 inch" selected="@(Model.DoPhanGiai == "14 inch")">14 inch</option>
+                                <option value="15.6 inch" selected="@(Model.DoPhanGiai == "15.6 inch")">15.6 inch</option>
+                                <option value="16 inch" selected="@(Model.DoPhanGiai == "16 inch")">16 inch</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-5">
+                            <h4 class="text-[10px] text-gray-400 font-bold mb-2 uppercase tracking-widest">SẮP XẾP THEO</h4>
+                            <select name="sapXep" onchange="applyAjaxFilter()" class="custom-select">
+                                @if (string.IsNullOrEmpty(Model.SapXep)) { <option value="" selected>Mặc định</option> } else { <option value="">Mặc định</option> }
+                                @if (Model.SapXep == "gia-tang") { <option value="gia-tang" selected>Giá tăng dần</option> } else { <option value="gia-tang">Giá tăng dần</option> }
+                                @if (Model.SapXep == "gia-giam") { <option value="gia-giam" selected>Giá giảm dần</option> } else { <option value="gia-giam">Giá giảm dần</option> }
+                            </select>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT (SẢN PHẨM CHÍNH XÁC NHƯ ẢNH) -->
+        <div class="flex-grow min-w-0" id="product-grid-container">
+            
+            @if (!Model.DanhSachSanPham.Any())
+            {
+                <div class="py-20 text-center">
+                    <span class="material-symbols-outlined text-6xl text-[#222] mb-4">inventory_2</span>
+                    <h3 class="font-['Space_Grotesk'] text-gray-500 uppercase tracking-widest text-sm">Không tìm thấy sản phẩm nào</h3>
+                    <a href="/" class="text-[#00FF66] text-xs font-bold uppercase mt-4 inline-block">Xem tất cả</a>
+                </div>
+            }
+            else
+            {
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+                    @foreach (var sp in Model.DanhSachSanPham)
+                    {
+                        <div class="bg-[#111] rounded-xl overflow-hidden border border-[#222] flex flex-col group hover:border-[#00FF66]/40 transition-colors duration-300">
+                            
+                            <!-- Ảnh sản phẩm (Background trắng) -->
+                            <div class="relative bg-white aspect-square p-6 flex items-center justify-center">
+                                @if (sp.DangKhuyenMai)
+                                {
+                                    <div class="absolute top-3 left-3 bg-[#ff5722] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm z-10">
+                                        -@sp.PhanTramGiam%
+                                    </div>
+                                }
+                                
+                                <button onclick="themVaoSoSanh(@sp.MaSanPham, event)" class="absolute top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-[#00FF66] hover:text-black text-white">
+                                    <span class="material-symbols-outlined text-[16px]">compare_arrows</span>
+                                </button>
+                                
+                                <a asp-action="ChiTiet" asp-route-id="@sp.MaSanPham" class="block w-full h-full">
+                                    <img src="@sp.HinhAnh" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" alt="@sp.TenSanPham" />
+                                </a>
+                            </div>
+                            
+                            <!-- Nội dung thẻ -->
+                            <div class="p-5 flex flex-col flex-grow">
+                                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1.5">@sp.TenDanhMuc</p>
+                                
+                                <div class="flex justify-between items-start gap-3 mb-2">
+                                    <a asp-action="ChiTiet" asp-route-id="@sp.MaSanPham" class="text-white font-bold text-[13px] line-clamp-2 leading-snug hover:text-[#00FF66] transition-colors h-10 flex-grow">
+                                        @sp.TenSanPham
+                                    </a>
+                                    <div class="text-right flex-shrink-0">
+                                        <div class="text-white font-bold text-[13px]">@FormatTien(sp.GiaThap)</div>
+                                        @if (sp.DangKhuyenMai)
+                                        {
+                                            <div class="text-gray-500 text-[10px] line-through mt-0.5">@FormatTien(sp.GiaNiemYet)</div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <p class="text-[10px] text-gray-500 mb-5 line-clamp-1">@(string.IsNullOrEmpty(sp.CauHinhChính) ? "Đang cập nhật" : sp.CauHinhChính.Replace("|", " | "))</p>
+                                
+                                <!-- Tồn kho và Nút bấm (Luôn đẩy xuống đáy thẻ) -->
+                                <div class="mt-auto">
+                                    <div class="flex justify-between text-[9px] font-bold uppercase tracking-widest mb-1">
+                                        <span class="text-gray-500">TỒN KHO</span>
+                                        <span class="text-[#00FF66]">Còn @sp.TonKho cái</span>
+                                    </div>
+                                    <div class="h-1 bg-[#222] rounded-full overflow-hidden mb-5">
+                                        @{
+                                            var width = Math.Min(100, Math.Max(5, (sp.TonKho * 100) / 50));
+                                        }
+                                        <div class="h-full bg-[#00FF66] rounded-full" style="width: @width%"></div>
+                                    </div>
+                                    
+                                    <div class="flex justify-between items-center">
+                                        <a asp-action="ChiTiet" asp-route-id="@sp.MaSanPham" class="text-[10px] text-gray-500 hover:text-white uppercase font-bold tracking-widest transition-colors flex items-center gap-1">
+                                            CHI TIẾT <span class="material-symbols-outlined text-[12px]">arrow_right_alt</span>
+                                        </a>
+                                        <button onclick="themVaoGioHang(@sp.MaBienTheChinhId, this)" class="bg-[#00FF66] text-black px-3.5 py-2 rounded flex items-center gap-1.5 hover:bg-white transition-colors">
+                                            <span class="material-symbols-outlined text-[14px]">shopping_cart</span>
+                                            <span class="text-[10px] font-black uppercase tracking-widest">THÊM VÀO GIỎ</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Phân trang như ảnh (Các ô xiên) -->
+                @if (Model.DanhSachSanPham.PageCount > 1)
+                {
+                    <div class="mt-14 flex justify-center items-center gap-2">
+                        @if (Model.DanhSachSanPham.HasPreviousPage)
+                        {
+                            <a href="@Url.Action("Index", new { page = Model.DanhSachSanPham.PageNumber - 1, danhMuc = Model.DanhMucDangChon, tuKhoa = Model.TuKhoa, khoangGia = Model.KhoangGia, ram = Model.RAM, vga = Model.VGA, cpu = Model.CPU, sapXep = Model.SapXep })" class="page-link-custom">
+                                <span><span class="material-symbols-outlined text-sm align-middle">chevron_left</span></span>
+                            </a>
+                        }
+
+                        @for (int i = 1; i <= Model.DanhSachSanPham.PageCount; i++)
+                        {
+                            <a href="@Url.Action("Index", new { page = i, danhMuc = Model.DanhMucDangChon, tuKhoa = Model.TuKhoa, khoangGia = Model.KhoangGia, ram = Model.RAM, vga = Model.VGA, cpu = Model.CPU, sapXep = Model.SapXep })" 
+                               class="page-link-custom @(i == Model.DanhSachSanPham.PageNumber ? "active" : "")">
+                                <span>@i</span>
+                            </a>
+                        }
+
+                        @if (Model.DanhSachSanPham.HasNextPage)
+                        {
+                            <a href="@Url.Action("Index", new { page = Model.DanhSachSanPham.PageNumber + 1, danhMuc = Model.DanhMucDangChon, tuKhoa = Model.TuKhoa, khoangGia = Model.KhoangGia, ram = Model.RAM, vga = Model.VGA, cpu = Model.CPU, sapXep = Model.SapXep })" class="page-link-custom">
+                                <span><span class="material-symbols-outlined text-sm align-middle">chevron_right</span></span>
+                            </a>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+async function applyAjaxFilter() {
+    const form = document.getElementById('filterForm');
+    const url = new URL(window.location.origin + form.getAttribute('action'));
+    const formData = new FormData(form);
+    
+    // Add form data to URL parameters
+    for (const [key, value] of formData) {
+        if (value) {
+            url.searchParams.append(key, value);
+        }
+    }
+    
+    // Fade out current grid
+    const container = document.getElementById('product-grid-container');
+    container.style.opacity = '0.5';
+    container.style.transition = 'opacity 0.3s ease';
+    
+    try {
+        const response = await fetch(url.toString(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+        const htmlText = await response.text();
+        
+        // Parse the new HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+        const newContainer = doc.getElementById('product-grid-container');
+        
+        if (newContainer) {
+            container.innerHTML = newContainer.innerHTML;
+            
+            // Update URL without reloading page
+            window.history.pushState({}, '', url.toString());
+        }
+    } catch (e) {
+        console.error('AJAX Filter Error:', e);
+        // Fallback to normal submit if error
+        form.submit();
+    }
+    
+    // Fade in
+    container.style.opacity = '1';
+}
+
+function clearFilters() {
+    const form = document.getElementById('filterForm');
+    
+    // Reset all radio buttons
+    const defaultRadio = form.querySelector('input[type="radio"][value=""]');
+    if(defaultRadio) defaultRadio.checked = true;
+    
+    // Reset all selects
+    const selects = form.querySelectorAll('select');
+    selects.forEach(s => s.selectedIndex = 0);
+    
+    applyAjaxFilter();
+}
+
+async function themVaoGioHang(id, btn) {
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">sync</span>';
+    try {
+        const res = await fetch('/GioHang/ThemVaoGioHang', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `maBienThe=${id}&soLuong=1`
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Đã thêm vào giỏ hàng!', 'success');
+            if(typeof capNhatSoLuongGioHang === 'function') capNhatSoLuongGioHang(data.tongSoLuong);
+        } else {
+            showToast(data.message, 'error');
+        }
+    } catch(e) { showToast('Lỗi kết nối', 'error'); }
+    btn.disabled = false; btn.innerHTML = original;
+}
+
+async function themVaoSoSanh(id, e) {
+    e.preventDefault(); e.stopPropagation();
+    try {
+        const res = await fetch(`/SoSanh/Them/${id}`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Đã thêm vào so sánh!', 'success');
+            const count = document.getElementById('so-sanh-count');
+            if (count) { count.textContent = data.count; count.classList.remove('hidden'); }
+        } else { showToast(data.message, 'info'); }
+    } catch(e) { showToast('Lỗi kết nối', 'error'); }
+}
+</script>
+}

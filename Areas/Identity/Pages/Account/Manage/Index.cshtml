@@ -1,0 +1,146 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Hồ sơ cá nhân";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="pt-32 pb-20 min-h-screen bg-black relative overflow-hidden">
+    <!-- Nền mờ -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-1/4 -right-40 w-[500px] h-[500px] bg-accent-cyber-lime/5 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-1/4 -left-40 w-[500px] h-[500px] bg-accent-electric-blue/5 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="max-w-[1280px] mx-auto px-8 relative z-10">
+        <div class="flex flex-col lg:flex-row gap-12">
+            <!-- Sidebar -->
+            <aside class="w-full lg:w-80 shrink-0">
+                <div class="bg-[#0D0D0D] border border-white/5 rounded-3xl p-8 sticky top-32">
+                    <div class="flex items-center gap-4 mb-10">
+                        <div class="w-16 h-16 bg-gradient-to-br from-accent-cyber-lime to-accent-electric-blue rounded-2xl flex items-center justify-center text-black">
+                            <span class="material-symbols-outlined text-3xl font-bold">person</span>
+                        </div>
+                        <div>
+                            <h2 class="font-['Space_Grotesk'] text-xl font-bold text-white line-clamp-1">@Model.Input.FullName</h2>
+                            <p class=" text-xs text-gray-500 tracking-widest uppercase mt-1">Khách hàng</p>
+                        </div>
+                    </div>
+
+                    <nav class="space-y-2">
+                        <a href="/Identity/Account/Manage" class="flex items-center gap-4 px-6 py-4 bg-accent-cyber-lime text-black rounded-2xl font-['Space_Grotesk'] font-bold text-sm transition-all shadow-[0_0_20px_rgba(198,255,0,0.2)]">
+                            <span class="material-symbols-outlined text-xl">account_circle</span>
+                            HỒ SƠ CÁ NHÂN
+                        </a>
+                        <a href="/Identity/Account/Manage/ChangePassword" class="flex items-center gap-4 px-6 py-4 text-gray-400 hover:text-white hover:bg-white/5 rounded-2xl font-['Space_Grotesk'] font-bold text-sm transition-all group">
+                            <span class="material-symbols-outlined text-xl group-hover:text-accent-cyber-lime transition-colors">lock</span>
+                            MẬT KHẨU
+                        </a>
+                        <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
+                            <button type="submit" class="w-full flex items-center gap-4 px-6 py-4 text-red-400 hover:bg-red-500/10 rounded-2xl font-['Space_Grotesk'] font-bold text-sm transition-all group">
+                                <span class="material-symbols-outlined text-xl">logout</span>
+                                ĐĂNG XUẤT
+                            </button>
+                        </form>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1">
+                <div class="bg-[#0D0D0D] border border-white/5 rounded-[40px] p-10 lg:p-16 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-12 opacity-5">
+                        <span class="material-symbols-outlined text-[160px] text-accent-cyber-lime">id_card</span>
+                    </div>
+
+                    <div class="relative z-10">
+                        <h1 class="font-['Space_Grotesk'] text-4xl font-black text-white uppercase tracking-tighter italic mb-2">Thông tin tài khoản</h1>
+                        <p class=" text-gray-500 text-sm mb-12">Cập nhật thông tin cá nhân và cài đặt bảo mật của bạn.</p>
+
+                        @if (!string.IsNullOrEmpty(Model.StatusMessage))
+                        {
+                            <div class="bg-accent-cyber-lime/10 border border-accent-cyber-lime/20 rounded-2xl p-4 mb-8 flex items-center gap-3 animate-fade-in">
+                                <span class="material-symbols-outlined text-accent-cyber-lime">check_circle</span>
+                                <p class=" text-sm text-accent-cyber-lime font-medium">@Model.StatusMessage</p>
+                            </div>
+                        }
+
+                        <form id="profile-form" method="post" class="space-y-8 max-w-2xl">
+                            <div asp-validation-summary="ModelOnly" class="text-red-400 text-sm"></div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-2">
+                                    <label class=" text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold block ml-2">Email Đăng Nhập</label>
+                                    <div class="relative">
+                                        <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-gray-600">alternate_email</span>
+                                        <input asp-for="Username" disabled class="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white/50  text-sm cursor-not-allowed" />
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label asp-for="Input.FullName" class=" text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold block ml-2">Họ Và Tên</label>
+                                    <div class="relative group">
+                                        <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-accent-cyber-lime transition-colors">badge</span>
+                                        <input asp-for="Input.FullName" class="w-full bg-[#151515] border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all placeholder:text-gray-700" placeholder="Nhập họ tên đầy đủ" />
+                                    </div>
+                                    <span asp-validation-for="Input.FullName" class="text-red-400 text-[10px] ml-2 font-bold"></span>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <label asp-for="Input.PhoneNumber" class=" text-[10px] text-gray-500 uppercase tracking-[0.2em] font-bold block ml-2">Số Điện Thoại</label>
+                                    <div class="relative group">
+                                        <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-accent-cyber-lime transition-colors">call</span>
+                                        <input asp-for="Input.PhoneNumber" class="w-full bg-[#151515] border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all placeholder:text-gray-700" placeholder="09xx xxx xxx" />
+                                    </div>
+                                    <span asp-validation-for="Input.PhoneNumber" class="text-red-400 text-[10px] ml-2 font-bold"></span>
+                                </div>
+                            </div>
+
+                            <div class="pt-8 border-t border-white/5 mt-12">
+                                <button type="submit" class="bg-accent-cyber-lime hover:opacity-90 active:scale-95 text-black font-['Space_Grotesk'] font-black py-5 px-10 rounded-2xl transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(198,255,0,0.15)] group">
+                                    LƯU THAY ĐỔI
+                                    <span class="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">save</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Thống kê nhỏ -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12">
+                    <div class="bg-[#0D0D0D] border border-white/5 rounded-3xl p-6 flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-accent-cyber-lime">
+                            <span class="material-symbols-outlined">shopping_bag</span>
+                        </div>
+                        <div>
+                            <span class="block text-2xl font-black text-white font-['Space_Grotesk']">0</span>
+                            <span class="block text-[10px] text-gray-500 uppercase font-bold tracking-widest">Đơn hàng</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#0D0D0D] border border-white/5 rounded-3xl p-6 flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-accent-electric-blue">
+                            <span class="material-symbols-outlined">favorite</span>
+                        </div>
+                        <div>
+                            <span class="block text-2xl font-black text-white font-['Space_Grotesk']">0</span>
+                            <span class="block text-[10px] text-gray-500 uppercase font-bold tracking-widest">Yêu thích</span>
+                        </div>
+                    </div>
+                    <div class="bg-[#0D0D0D] border border-white/5 rounded-3xl p-6 flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-accent-vivid-orange">
+                            <span class="material-symbols-outlined">star</span>
+                        </div>
+                        <div>
+                            <span class="block text-2xl font-black text-white font-['Space_Grotesk']">0</span>
+                            <span class="block text-[10px] text-gray-500 uppercase font-bold tracking-widest">Đánh giá</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

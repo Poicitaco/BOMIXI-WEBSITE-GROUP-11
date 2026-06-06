@@ -1,0 +1,87 @@
+@model ShopLaptop_v1.Models.Banner
+@{
+    ViewData["Title"] = "Them Banner";
+    bool laSua = Model.Id > 0;
+}
+<div class="mb-8">
+    <a asp-action="Index" class="inline-flex items-center gap-1 text-gray-500 hover:text-white text-sm font-['Space_Grotesk'] transition-colors mb-4">
+        <span class="material-symbols-outlined text-base">arrow_back</span> Quay lai
+    </a>
+    <h1 class="text-2xl font-black text-white font-['Space_Grotesk'] uppercase tracking-tight">@(laSua ? "Sua Banner" : "Them Banner Moi")</h1>
+</div>
+
+<div class="max-w-2xl">
+    <form asp-action="@(laSua ? "Sua" : "Tao")" method="post" class="space-y-6">
+        @Html.AntiForgeryToken()
+        @if (laSua) { <input type="hidden" asp-for="Id" /> }
+
+        <div>
+            <label class="block font-['Space_Grotesk'] text-xs font-700 tracking-widest uppercase text-gray-400 mb-2">Tieu de *</label>
+            <input asp-for="TieuDe" class="w-full bg-[#111] border border-[#333] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-colors" placeholder="Vi du: Gaming Station" />
+            <span asp-validation-for="TieuDe" class="text-red-400 text-xs mt-1 block"></span>
+        </div>
+
+        <div>
+            <label class="block font-['Space_Grotesk'] text-xs font-700 tracking-widest uppercase text-gray-400 mb-2">Mo ta ngan</label>
+            <input asp-for="MoTa" class="w-full bg-[#111] border border-[#333] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-colors" placeholder="Vi du: Lam chu cuoc choi" />
+        </div>
+
+        <div>
+            <label class="block font-['Space_Grotesk'] text-xs font-700 tracking-widest uppercase text-gray-400 mb-2">URL Hinh anh *</label>
+            <input asp-for="DuongDanAnh" class="w-full bg-[#111] border border-[#333] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-colors" placeholder="https://..." />
+            <span asp-validation-for="DuongDanAnh" class="text-red-400 text-xs mt-1 block"></span>
+            <div id="xem-truoc" class="mt-3 hidden">
+                <p class="text-xs text-gray-500 mb-1">Xem truoc:</p>
+                <div class="w-48 h-28 bg-black rounded overflow-hidden border border-[#252525]">
+                    <img id="anh-xem-truoc" src="" alt="Preview" class="w-full h-full object-cover" />
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label class="block font-['Space_Grotesk'] text-xs font-700 tracking-widest uppercase text-gray-400 mb-2">Nhan Tag</label>
+            <input asp-for="NhanTag" class="w-full bg-[#111] border border-[#333] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-colors" placeholder="Vi du: GAMING STATION" />
+        </div>
+
+        <div>
+            <label class="block font-['Space_Grotesk'] text-xs font-700 tracking-widest uppercase text-gray-400 mb-2">Link</label>
+            <input asp-for="DuongDanLink" class="w-full bg-[#111] border border-[#333] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-colors" placeholder="#" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block font-['Space_Grotesk'] text-xs font-700 tracking-widest uppercase text-gray-400 mb-2">Thu tu hien thi</label>
+                <input asp-for="ThuTu" type="number" class="w-full bg-[#111] border border-[#333] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-colors" />
+            </div>
+            <div class="flex items-end">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input asp-for="DangHoatDong" type="checkbox" class="w-5 h-5 accent-accent-cyber-lime" />
+                    <span class="font-['Space_Grotesk'] text-sm text-white">Dang hoat dong</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="flex gap-4 pt-4">
+            <button type="submit" class="px-8 py-3 bg-accent-cyber-lime text-black font-['Space_Grotesk'] font-black text-xs tracking-widest uppercase transition-all hover:bg-white [clip-path:polygon(8px_0,100%_0,100%_calc(100%-8px),calc(100%-8px)_100%,0_100%,0_8px)]">
+                @(laSua ? "CAP NHAT" : "TAO BANNER")
+            </button>
+            <a asp-action="Index" class="px-8 py-3 border border-[#333] text-gray-400 font-['Space_Grotesk'] font-bold text-xs tracking-widest uppercase hover:text-white hover:border-white transition-all">HUY</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById('@Html.IdFor(m => m.DuongDanAnh)').addEventListener('input', function() {
+        const url = this.value.trim();
+        const preview = document.getElementById('xem-truoc');
+        const img = document.getElementById('anh-xem-truoc');
+        if (url.startsWith('http')) {
+            img.src = url;
+            preview.classList.remove('hidden');
+        } else {
+            preview.classList.add('hidden');
+        }
+    });
+</script>
+}

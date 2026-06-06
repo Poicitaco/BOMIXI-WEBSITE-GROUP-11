@@ -1,0 +1,77 @@
+@model List<ShopLaptop_v1.Models.YeuThich>
+@{
+    ViewData["MetaTitle"] = "Sản phẩm yêu thích - BOMIXI";
+    ViewData["MetaDescription"] = "Danh sách sản phẩm yêu thích của bạn tại BOMIXI.";
+}
+<style>
+.yeu-thich-card {
+    background: #111;
+    border: 1px solid #252525;
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.3s, transform 0.3s;
+}
+.yeu-thich-card:hover {
+    border-color: rgba(0,255,102,0.4);
+    transform: translateY(-3px);
+}
+</style>
+
+<section style="max-width:1280px; margin:0 auto; padding:8rem 2rem 4rem;">
+    <div style="margin-bottom:2.5rem; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+            <p style="font-family:'Space Grotesk',sans-serif; font-size:0.65rem; font-weight:700; color:#00FF66; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:0.5rem;">TAI KHOAN CUA BAN</p>
+            <h1 style="font-family:'Space Grotesk',sans-serif; font-size:2rem; font-weight:900; color:#fff; margin:0;">San pham yeu thich</h1>
+        </div>
+        <span style="font-family:'Space Grotesk',sans-serif; font-size:0.75rem; color:#6b7280;">@Model.Count san pham</span>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div style="text-align:center; padding:5rem 2rem; border:1px dashed #252525; border-radius:16px;">
+            <span class="material-symbols-outlined" style="font-size:4rem; color:#333; display:block; margin-bottom:1rem;">favorite</span>
+            <p style="font-family:'Space Grotesk',sans-serif; font-size:0.85rem; color:#6b7280; margin-bottom:1.5rem;">Ban chua co san pham yeu thich nao.</p>
+            <a asp-controller="Home" asp-action="Index" style="display:inline-flex; align-items:center; padding:0.75rem 2rem; background:#00FF66; color:#000; font-family:'Space Grotesk',sans-serif; font-weight:900; font-size:0.75rem; letter-spacing:0.15em; text-transform:uppercase; text-decoration:none; clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);">KHAM PHA NGAY</a>
+        </div>
+    }
+    else
+    {
+        <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1.5rem;">
+            @foreach (var item in Model)
+            {
+                var sp = item.Product;
+                if (sp == null) continue;
+                var hinhAnh = sp.Images?.FirstOrDefault(i => i.IsMainImage)?.ImageUrl ?? sp.Images?.FirstOrDefault()?.ImageUrl ?? "";
+                var giaThap = sp.Variants?.Any() == true ? sp.Variants.Min(v => v.DiscountPrice ?? v.Price) : 0;
+
+                <div class="yeu-thich-card">
+                    <a asp-controller="Home" asp-action="ChiTiet" asp-route-id="@sp.Id" style="display:block; height:180px; background:#000; display:flex; align-items:center; justify-content:center; padding:1.25rem; text-decoration:none;">
+                        @if (!string.IsNullOrEmpty(hinhAnh))
+                        {
+                            <img src="@hinhAnh" alt="@sp.Name" loading="lazy" style="max-width:100%; max-height:100%; object-fit:contain;" />
+                        }
+                        else
+                        {
+                            <span class="material-symbols-outlined" style="font-size:3rem; color:#333;">laptop</span>
+                        }
+                    </a>
+                    <div style="padding:1rem; flex:1; display:flex; flex-direction:column;">
+                        <a asp-controller="Home" asp-action="ChiTiet" asp-route-id="@sp.Id" style="font-family:'Space Grotesk',sans-serif; font-size:0.85rem; font-weight:600; color:#fff; text-decoration:none; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; margin-bottom:0.5rem;">@sp.Name</a>
+                        <div style="font-family:'Space Grotesk',sans-serif; font-size:0.9rem; font-weight:700; color:#00FF66; margin-bottom:1rem;">@giaThap.ToString("N0")d</div>
+                        <div style="display:flex; gap:0.5rem; margin-top:auto;">
+                            <a asp-controller="GioHang" asp-action="ThemNhanh" asp-route-id="@(sp.Variants?.OrderBy(v => v.Price).FirstOrDefault()?.Id)" style="flex:1; display:flex; align-items:center; justify-content:center; padding:0.5rem; background:#00FF66; color:#000; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; text-decoration:none; clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);">THEM GIO HANG</a>
+                            <form asp-controller="YeuThich" asp-action="Xoa" asp-route-id="@sp.Id" method="post" style="margin:0;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" style="padding:0.5rem 0.75rem; background:#1a1a1a; border:1px solid #333; color:#ef4444; cursor:pointer; border-radius:6px; transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.1)'" onmouseout="this.style.background='#1a1a1a'">
+                                    <span class="material-symbols-outlined" style="font-size:1rem; display:block;">delete</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>

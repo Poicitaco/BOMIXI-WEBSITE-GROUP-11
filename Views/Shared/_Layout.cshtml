@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["MetaTitle"] ?? ViewData["Title"] + " - BOMIXI")</title>
+    <meta name="description" content="@(ViewData["MetaDescription"] ?? "BOMIXI - Cửa hàng Laptop cao cấp hàng đầu Việt Nam. Bảo hành 24 tháng, giao hàng toàn quốc.")" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="@(ViewData["MetaTitle"] ?? "BOMIXI - Laptop Chính Hãng")" />
+    <meta property="og:description" content="@(ViewData["MetaDescription"] ?? "BOMIXI - Cửa hàng Laptop cao cấp hàng đầu Việt Nam.")" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/tailwind.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+    <style>
+        :root {
+            --accent-cyber-lime: #C6FF00;
+        }
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #050505;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            position: relative;
+            min-height: 100vh;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% -20%, rgba(198, 255, 0, 0.08), transparent 70%),
+                        radial-gradient(circle at 0% 100%, rgba(0, 255, 255, 0.03), transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px),
+                        linear-gradient(180deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-size: 100px 100px;
+            pointer-events: none;
+            z-index: -1;
+            mask-image: radial-gradient(ellipse at center, black, transparent 80%);
+        }
+    </style>
+</head>
+<body class="antialiased text-white">
+    <div class="cyber-grid"></div>
+
+@inject ShopLaptop_v1.Services.SystemSettingService SettingService
+@{
+    var fsText = await SettingService.GetValueAsync("FlashSale_Text", "FLASH SALE - GIẢM 20% CHO ĐƠN HÀNG TRÊN 20 TRIỆU");
+    var fsEnd = await SettingService.GetValueAsync("FlashSale_EndDate", DateTime.Today.AddDays(1).ToString("yyyy-MM-dd HH:mm:ss"));
+    var fsActive = await SettingService.IsActiveAsync("FlashSale_IsActive");
+}
+
+@if (fsActive)
+{
+    <!-- FLASH SALE BAR -->
+    <div id="flash-sale-bar" style="background:linear-gradient(90deg,#00FF66,#00cc52);color:#000;text-align:center;padding:0.4rem 1rem;font-family:'Space Grotesk',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;position:relative;z-index:60;">
+        <span>@fsText</span>
+        <span style="margin:0 1rem;">|</span>
+        <span>KẾT THÚC TRONG: <span id="dem-nguoc-flash" style="font-size:0.85rem;letter-spacing:0.05em;">00:00:00</span></span>
+        <button onclick="document.getElementById('flash-sale-bar').style.display='none'" style="position:absolute;right:1rem;top:50%;transform:translateY(-50%);background:none;border:none;color:#000;cursor:pointer;font-size:1rem;line-height:1;display:flex;align-items:center;">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+    </div>
+
+    <script>
+        (function() {
+            const endTime = new Date("@fsEnd").getTime();
+            function updateFS() {
+                const now = new Date().getTime();
+                const diff = Math.max(0, endTime - now);
+                const h = Math.floor(diff / 3600000);
+                const m = Math.floor((diff % 3600000) / 60000);
+                const s = Math.floor((diff % 60000) / 1000);
+                const timer = document.getElementById('dem-nguoc-flash');
+                if (timer) timer.textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            }
+            setInterval(updateFS, 1000);
+            updateFS();
+        })();
+    </script>
+}
+
+<!-- HEADER -->
+<header class="fixed top-0 left-0 w-full z-50 bg-black/95 backdrop-blur-md border-b border-[#252525]">
+    <div class="max-w-[1280px] mx-auto flex justify-between items-center px-8 h-20">
+        <a asp-controller="Home" asp-action="Index"
+           class="text-2xl font-black italic tracking-tighter text-accent-cyber-lime font-['Space_Grotesk']">
+            BOMIXI
+        </a>
+        <nav class="hidden md:flex items-center gap-8">
+            <a asp-controller="Home" asp-action="Index"
+               class="font-['Space_Grotesk'] tracking-tight @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "text-accent-cyber-lime border-b-2 border-accent-cyber-lime pb-1" : "text-gray-400 hover:text-white transition-colors")">
+                Laptop
+            </a>
+            <a asp-controller="GioHang" asp-action="Index"
+               class="font-['Space_Grotesk'] tracking-tight @(ViewContext.RouteData.Values["controller"]?.ToString() == "GioHang" ? "text-accent-cyber-lime border-b-2 border-accent-cyber-lime pb-1" : "text-gray-400 hover:text-white transition-colors")">
+                Giỏ Hàng
+            </a>
+            <a href="#" class="font-['Space_Grotesk'] tracking-tight text-gray-400 hover:text-white transition-colors">Blog</a>
+            <a href="#" class="font-['Space_Grotesk'] tracking-tight text-gray-400 hover:text-white transition-colors">Hỗ Trợ</a>
+        </nav>
+        <div class="flex items-center gap-6">
+            <!-- Tìm kiếm -->
+            <div class="relative hidden md:block group">
+                <form asp-controller="Home" asp-action="Index" method="get"
+                      class="flex items-center bg-[#0D0D0D] border border-[#252525] group-focus-within:border-accent-cyber-lime rounded-lg px-3 py-2 w-48 lg:w-64 transition-colors">
+                    <span class="material-symbols-outlined text-gray-500 text-[20px]">search</span>
+                    <input name="tuKhoa" value="@ViewData["TuKhoa"]" id="search-input" autocomplete="off"
+                           class="bg-transparent border-none outline-none text-sm text-white w-full placeholder:text-gray-600 ml-2"
+                           placeholder="Tìm kiếm..." type="text" />
+                </form>
+                <!-- Popup Gợi ý -->
+                <div id="search-suggestions" class="absolute top-full right-0 w-[300px] lg:w-[350px] bg-[#0D0D0D] border border-[#252525] rounded-lg mt-2 overflow-hidden hidden shadow-[0_10px_30px_rgba(0,0,0,0.8)] z-50">
+                    <div id="search-results-container" class="max-h-[400px] overflow-y-auto"></div>
+                </div>
+            </div>
+            <!-- So sánh -->
+            @{
+                var soSanhList = Context.Session.Get<List<int>>("SoSanh_Session") ?? new List<int>();
+                var soSanhCount = soSanhList.Count;
+            }
+            <a asp-controller="SoSanh" asp-action="Index" class="text-white hover:text-accent-cyber-lime transition-colors relative" id="so-sanh-icon" title="So sánh sản phẩm">
+                <span class="material-symbols-outlined">compare</span>
+                <span class="absolute -top-2 -right-2 bg-[#252525] border border-[#333] text-accent-cyber-lime text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center @(soSanhCount == 0 ? "hidden" : "")" id="so-sanh-count">@soSanhCount</span>
+            </a>
+
+            <!-- Yeu thich -->
+            @if (User.Identity!.IsAuthenticated)
+            {
+                <a asp-controller="YeuThich" asp-action="Index" class="text-white hover:text-accent-cyber-lime transition-colors relative" id="yeu-thich-icon" title="Sản phẩm yêu thích">
+                    <span class="material-symbols-outlined" id="yeu-thich-icon-span">favorite</span>
+                    <span class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full items-center justify-center hidden" id="yeu-thich-count">0</span>
+                </a>
+            }
+
+            <!-- Giỏ hàng -->
+            <a asp-controller="GioHang" asp-action="Index" class="text-white hover:text-accent-cyber-lime transition-colors relative" id="gio-hang-icon">
+                <span class="material-symbols-outlined">shopping_cart</span>
+                @{
+                    var gioHangCount = (int)(ViewData["SoLuongGioHang"] ?? 0);
+                }
+                @if (gioHangCount > 0)
+                {
+                    <span class="absolute -top-2 -right-2 bg-accent-cyber-lime text-black text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center" id="gio-hang-count">@gioHangCount</span>
+                }
+                else
+                {
+                    <span class="absolute -top-2 -right-2 bg-accent-cyber-lime text-black text-[10px] font-bold w-5 h-5 rounded-full items-center justify-center hidden" id="gio-hang-count">0</span>
+                }
+            </a>
+            <!-- Tài khoản -->
+            @if (User.Identity!.IsAuthenticated)
+            {
+                <div class="relative group">
+                    <button class="text-white hover:text-accent-cyber-lime transition-colors flex items-center gap-2">
+                        <span class="material-symbols-outlined">account_circle</span>
+                        <span class="hidden md:block text-sm font-['Space_Grotesk']">@User.Identity.Name?.Split('@')[0]</span>
+                    </button>
+                    <div class="absolute right-0 top-full mt-2 @(User.IsInRole("QuanTri") ? "w-[280px]" : "w-48") bg-[#0D0D0D] border border-[#252525] rounded-xl overflow-hidden opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50">
+                        <div class="p-4 border-b border-[#1A1A1A] bg-black">
+                            <p class="font-['Space_Grotesk'] font-bold text-white text-sm truncate">@User.Identity.Name</p>
+                            @if (User.IsInRole("QuanTri"))
+                            {
+                                <p class="text-[10px] uppercase font-bold tracking-[0.2em] text-[#00FF66] mt-1">Hệ thống Admin</p>
+                            }
+                            else
+                            {
+                                <p class="text-[10px] uppercase font-bold tracking-[0.2em] text-gray-500 mt-1">Thành viên</p>
+                            }
+                        </div>
+                        
+                        <div class="py-2">
+                            <a asp-controller="TaiKhoan" asp-action="HoSo" class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-[#1A1A1A] hover:text-white transition-colors">
+                                <span class="material-symbols-outlined text-[18px] mr-3 text-gray-400">person</span>Hồ sơ cá nhân
+                            </a>
+                            <a asp-controller="DonHang" asp-action="DanhSach" class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-[#1A1A1A] hover:text-white transition-colors">
+                                <span class="material-symbols-outlined text-[18px] mr-3 text-gray-400">receipt_long</span>Lịch sử mua hàng
+                            </a>
+                        </div>
+
+                        @if (User.IsInRole("QuanTri"))
+                        {
+                            <div class="border-t border-[#1A1A1A] py-2 bg-[#050505]">
+                                <div class="px-4 py-1.5">
+                                    <span class="text-[9px] text-gray-600 uppercase font-bold tracking-[0.2em]">Quản trị trung tâm</span>
+                                </div>
+                                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-[#111] hover:text-white transition-colors border-l-2 border-transparent hover:border-[#00FF66]">
+                                    <span class="material-symbols-outlined text-[18px] mr-3 text-[#00FF66]">monitoring</span>Bảng điều khiển
+                                </a>
+                                <a asp-area="Admin" asp-controller="QuanLySanPham" asp-action="Index" class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-[#111] hover:text-white transition-colors border-l-2 border-transparent hover:border-[#00FF66]">
+                                    <span class="material-symbols-outlined text-[18px] mr-3 text-gray-400">inventory_2</span>Kho & Sản phẩm
+                                </a>
+                                <a asp-area="Admin" asp-controller="QuanLyDonHang" asp-action="Index" class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-[#111] hover:text-white transition-colors border-l-2 border-transparent hover:border-[#00FF66]">
+                                    <span class="material-symbols-outlined text-[18px] mr-3 text-gray-400">local_shipping</span>Xử lý Đơn hàng
+                                </a>
+                                <a asp-area="Admin" asp-controller="QuanLyDanhMuc" asp-action="Index" class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-[#111] hover:text-white transition-colors border-l-2 border-transparent hover:border-[#00FF66]">
+                                    <span class="material-symbols-outlined text-[18px] mr-3 text-gray-400">category</span>Hãng & Danh mục
+                                </a>
+                                <a asp-area="Admin" asp-controller="QuanLyBanner" asp-action="Index" class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-[#111] hover:text-white transition-colors border-l-2 border-transparent hover:border-[#00FF66]">
+                                    <span class="material-symbols-outlined text-[18px] mr-3 text-gray-400">view_carousel</span>Banner & UI
+                                </a>
+                                <a asp-area="Admin" asp-controller="QuanLySetting" asp-action="Index" class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-[#111] hover:text-white transition-colors border-l-2 border-transparent hover:border-[#00FF66]">
+                                    <span class="material-symbols-outlined text-[18px] mr-3 text-gray-400">settings_applications</span>Cấu hình hệ thống
+                                </a>
+                            </div>
+                        }
+                        
+                        <div class="border-t border-[#1A1A1A] py-1 bg-[#111]">
+                            <form method="post" action="/Identity/Account/Logout">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="w-full flex items-center px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors font-bold">
+                                    <span class="material-symbols-outlined text-[18px] mr-3">logout</span>Đăng xuất
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <a href="/Identity/Account/Login" class="text-white hover:text-accent-cyber-lime transition-colors">
+                    <span class="material-symbols-outlined">account_circle</span>
+                </a>
+            }
+        </div>
+    </div>
+</header>
+
+<!-- NỘI DUNG CHÍNH -->
+<main class="pt-20 min-h-screen">
+    @RenderBody()
+</main>
+
+<!-- FOOTER -->
+<footer class="bg-[#050505] border-t border-[#1A1A1A]">
+    <div class="max-w-[1280px] mx-auto py-16 px-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-16">
+            <!-- Cột 1: Thông tin thương hiệu -->
+            <div class="flex flex-col">
+                <div class="text-2xl font-black italic text-white font-['Space_Grotesk'] mb-4 tracking-wider">
+                    <span class="text-accent-cyber-lime">BOMIXI</span>
+                </div>
+                <p class="font-['Space_Grotesk'] text-xs text-gray-400 tracking-wider uppercase leading-relaxed mb-6">
+                    HỆ THỐNG PHÂN PHỐI LAPTOP CHÍNH HÃNG. ĐỈNH CAO CÔNG NGHỆ, TRẢI NGHIỆM ĐỘT PHÁ.
+                </p>
+                <div class="flex gap-4 mt-auto">
+                    <a href="#" class="w-10 h-10 bg-[#111] border border-[#252525] flex items-center justify-center text-gray-400 hover:text-black hover:bg-accent-cyber-lime transition-all -skew-x-12">
+                        <span class="material-symbols-outlined text-[18px] skew-x-12">share</span>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-[#111] border border-[#252525] flex items-center justify-center text-gray-400 hover:text-black hover:bg-accent-cyber-lime transition-all -skew-x-12">
+                        <span class="material-symbols-outlined text-[18px] skew-x-12">forum</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Cột 2: Sản phẩm -->
+            <div>
+                <h4 class="font-['Space_Grotesk'] text-sm font-bold text-white mb-6 uppercase border-b border-[#333] pb-2 inline-block">SẢN PHẨM</h4>
+                <ul class="space-y-3 font-['Space_Grotesk'] text-xs tracking-widest text-gray-500 uppercase">
+                    <li><a asp-controller="Home" asp-action="Index" asp-route-danhMuc="gaming" class="hover:text-accent-cyber-lime transition-colors">Laptop Gaming</a></li>
+                    <li><a asp-controller="Home" asp-action="Index" asp-route-danhMuc="vanphong" class="hover:text-accent-cyber-lime transition-colors">Laptop Văn Phòng</a></li>
+                    <li><a asp-controller="Home" asp-action="Index" asp-route-danhMuc="doanhnhan" class="hover:text-accent-cyber-lime transition-colors">Laptop Doanh Nhân</a></li>
+                    <li><a href="#" class="hover:text-accent-cyber-lime transition-colors">Linh Kiện & Phụ Kiện</a></li>
+                </ul>
+            </div>
+            
+            <!-- Cột 3: Hỗ trợ -->
+            <div>
+                <h4 class="font-['Space_Grotesk'] text-sm font-bold text-white mb-6 uppercase border-b border-[#333] pb-2 inline-block">HỖ TRỢ</h4>
+                <ul class="space-y-3 font-['Space_Grotesk'] text-xs tracking-widest text-gray-500 uppercase">
+                    <li><a href="#" class="hover:text-accent-cyber-lime transition-colors">Chính sách bảo hành</a></li>
+                    <li><a href="#" class="hover:text-accent-cyber-lime transition-colors">Chính sách đổi trả</a></li>
+                    <li><a href="#" class="hover:text-accent-cyber-lime transition-colors">Hướng dẫn thanh toán</a></li>
+                    <li><a href="#" class="hover:text-accent-cyber-lime transition-colors">Tra cứu đơn hàng</a></li>
+                </ul>
+            </div>
+
+            <!-- Cột 4: Đăng ký -->
+            <div>
+                <h4 class="font-['Space_Grotesk'] text-sm font-bold text-white mb-6 uppercase border-b border-[#333] pb-2 inline-block">ĐĂNG KÝ NHẬN TIN</h4>
+                <p class="font-['Space_Grotesk'] text-xs text-gray-500 mb-4 tracking-wider uppercase">Nhận thông tin khuyến mãi sớm nhất.</p>
+                <div class="relative flex -skew-x-12">
+                    <input type="email" placeholder="EMAIL CỦA BẠN" class="w-full bg-[#111] border border-[#333] text-white text-xs px-4 py-3 focus:outline-none focus:border-accent-cyber-lime font-['Space_Grotesk'] tracking-widest transition-colors" />
+                    <button class="bg-accent-cyber-lime text-black px-4 flex items-center justify-center font-bold hover:bg-white transition-colors">
+                        <span class="material-symbols-outlined skew-x-12">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="pt-8 border-t border-[#1A1A1A] flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="font-['Space_Grotesk'] uppercase text-[10px] font-bold tracking-[0.2em] text-gray-600">
+                © 2026 BOMIXI. ALL RIGHTS RESERVED.
+            </div>
+            <div class="flex items-center gap-6 font-['Space_Grotesk'] uppercase text-[10px] font-bold tracking-[0.2em]">
+                <a href="#" class="text-gray-600 hover:text-white transition-colors">ĐIỀU KHOẢN</a>
+                <a href="#" class="text-gray-600 hover:text-white transition-colors">BẢO MẬT</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3"></div>
+
+<script>
+    // Hàm hiển thị Toast chuyên nghiệp
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        
+        let icon = 'check_circle';
+        let borderColor = 'border-green-500';
+        let textColor = 'text-green-500';
+        
+        if (type === 'error') {
+            icon = 'error';
+            borderColor = 'border-red-500';
+            textColor = 'text-red-500';
+        } else if (type === 'info') {
+            icon = 'info';
+            borderColor = 'border-accent-electric-blue';
+            textColor = 'text-accent-electric-blue';
+        }
+        
+        toast.className = `flex items-center gap-3 min-w-[300px] bg-[#111] border-l-4 ${borderColor} text-white px-4 py-3 rounded-r-lg shadow-[0_4px_20px_rgba(0,0,0,0.5)] transition-all duration-300  text-sm`;
+        toast.style.transform = 'translateX(100%)';
+        toast.style.opacity = '0';
+        
+        toast.innerHTML = `
+            <span class="material-symbols-outlined ${textColor}">${icon}</span>
+            <span class="flex-grow">${message}</span>
+            <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-white transition-colors">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Trigger animation
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+            toast.style.opacity = '1';
+        }, 10);
+        
+        // Tự động tắt sau 3 giây
+        setTimeout(() => {
+            toast.style.transform = 'translateX(100%)';
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    // Cập nhật số lượng giỏ hàng động
+    function capNhatSoLuongGioHang(soLuong) {
+        const badge = document.getElementById('gio-hang-count');
+        if (badge) {
+            badge.textContent = soLuong;
+            if (soLuong > 0) badge.classList.remove('hidden');
+            else badge.classList.add('hidden');
+        }
+    }
+    // Auto-suggest tìm kiếm
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+        const suggestionsBox = document.getElementById('search-suggestions');
+        const resultsContainer = document.getElementById('search-results-container');
+        let searchTimeout = null;
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                clearTimeout(searchTimeout);
+                const query = e.target.value.trim();
+
+                if (query.length < 2) {
+                    suggestionsBox.classList.add('hidden');
+                    return;
+                }
+
+                searchTimeout = setTimeout(async () => {
+                    try {
+                        const response = await fetch(`/Home/GoiYTimKiem?tuKhoa=${encodeURIComponent(query)}`);
+                        const data = await response.json();
+                        
+                        if (data && data.length > 0) {
+                            resultsContainer.innerHTML = '';
+                            data.forEach(item => {
+                                const giaFormat = new Intl.NumberFormat('vi-VN').format(item.gia) + ' VNĐ';
+                                const hinhAnh = item.hinhAnh ? item.hinhAnh : '/images/placeholder.png';
+                                
+                                const html = `
+                                    <a href="/Home/ChiTiet/${item.id}" class="flex items-center gap-3 p-3 hover:bg-[#1A1A1A] transition-colors border-b border-[#1A1A1A] last:border-b-0">
+                                        <div class="w-12 h-12 bg-white flex items-center justify-center rounded overflow-hidden flex-shrink-0">
+                                            <img src="${hinhAnh}" class="max-w-full max-h-full object-contain" alt="${item.ten}" onerror="this.src='/images/placeholder.png'" />
+                                        </div>
+                                        <div class="flex-grow min-w-0">
+                                            <div class="text-white text-sm font-semibold truncate font-['Space_Grotesk']">${item.ten}</div>
+                                            <div class="text-accent-cyber-lime text-xs font-bold mt-1">${giaFormat}</div>
+                                        </div>
+                                    </a>
+                                `;
+                                resultsContainer.insertAdjacentHTML('beforeend', html);
+                            });
+                            suggestionsBox.classList.remove('hidden');
+                        } else {
+                            resultsContainer.innerHTML = `
+                                <div class="p-4 text-center text-sm text-gray-500 ">
+                                    Không tìm thấy sản phẩm nào phù hợp.
+                                </div>
+                            `;
+                            suggestionsBox.classList.remove('hidden');
+                        }
+                    } catch (err) {
+                        console.error('Lỗi tìm kiếm:', err);
+                    }
+                }, 400); // delay 400ms
+            });
+
+            // Ẩn khi click ra ngoài
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                    suggestionsBox.classList.add('hidden');
+                }
+            });
+            
+            // Hiện lại khi focus vào ô tìm kiếm có dữ liệu
+            searchInput.addEventListener('focus', function() {
+                if (this.value.trim().length >= 2) {
+                    suggestionsBox.classList.remove('hidden');
+                }
+            });
+        }
+    });
+</script>
+
+<!-- RECENTLY VIEWED SECTION -->
+<div id="da-xem-section" style="display:none; background:#0a0a0a; border-top:1px solid #1a1a1a; padding:2.5rem 0;">
+    <div style="max-width:1280px; margin:0 auto; padding:0 2rem;">
+        <h3 style="font-family:'Space Grotesk',sans-serif; font-size:0.7rem; font-weight:700; color:#00FF66; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:1.25rem;">DA XEM GAN DAY</h3>
+        <div id="da-xem-grid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:1rem;"></div>
+    </div>
+</div>
+
+<script>
+    // Flash Sale Countdown - dem nguoc den nua dem
+    (function() {
+        function capNhatDemNguoc() {
+            const el = document.getElementById('dem-nguoc-flash');
+            if (!el) return;
+            const now = new Date();
+            const ketThuc = new Date();
+            ketThuc.setHours(23, 59, 59, 0);
+            const con = Math.max(0, ketThuc - now);
+            const gio = Math.floor(con / 3600000);
+            const phut = Math.floor((con % 3600000) / 60000);
+            const giay = Math.floor((con % 60000) / 1000);
+            el.textContent = [gio, phut, giay].map(n => String(n).padStart(2, '0')).join(':');
+        }
+        capNhatDemNguoc();
+        setInterval(capNhatDemNguoc, 1000);
+    })();
+
+    // Recently Viewed - tai va hien thi
+    (function() {
+        async function taiDaXem() {
+            try {
+                const res = await fetch('/Home/LaySanPhamDaXem');
+                const data = await res.json();
+                if (!data || data.length === 0) return;
+                const section = document.getElementById('da-xem-section');
+                const grid = document.getElementById('da-xem-grid');
+                if (!section || !grid) return;
+                grid.innerHTML = data.map(sp => `
+                    <a href="/Home/ChiTiet/${sp.id}" style="display:block;background:#111;border:1px solid #252525;border-radius:8px;overflow:hidden;text-decoration:none;transition:border-color 0.2s,transform 0.2s;" onmouseover="this.style.borderColor='rgba(0,255,102,0.4)';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='#252525';this.style.transform='none';">
+                        <div style="height:110px;background:#000;display:flex;align-items:center;justify-content:center;padding:0.75rem;">
+                            <img src="${sp.hinhAnh}" alt="${sp.ten}" style="max-width:100%;max-height:100%;object-fit:contain;" loading="lazy" onerror="this.style.display='none'">
+                        </div>
+                        <div style="padding:0.6rem 0.75rem;">
+                            <div style="font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:600;color:#fff;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${sp.ten}</div>
+                            <div style="font-family:'Space Grotesk',sans-serif;font-size:0.7rem;font-weight:700;color:#00FF66;margin-top:0.25rem;">${sp.giaFormat}</div>
+                        </div>
+                    </a>
+                `).join('');
+                section.style.display = 'block';
+            } catch(e) { /* silent fail */ }
+        }
+        document.addEventListener('DOMContentLoaded', taiDaXem);
+    })();
+
+    // Cap nhat badge Yeu thich
+    @if (User.Identity!.IsAuthenticated) {
+        <text>
+    document.addEventListener('DOMContentLoaded', async function() {
+        try {
+            const res = await fetch('/YeuThich/KiemTraTrangThai?id=0');
+            const data = await res.json();
+            const badge = document.getElementById('yeu-thich-count');
+            if (badge && data.tongSo > 0) {
+                badge.textContent = data.tongSo;
+                badge.style.display = 'flex';
+            }
+        } catch(e) {}
+    });
+        </text>
+    }
+</script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Build output
+bin/
+obj/
+out/
+
+# Visual Studio / IDE
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Node dependencies
+node_modules/
+
+# Local runtime data
+*.db
+*.db-shm
+*.db-wal
+*.log
+
+# Local secrets and environment files
+appsettings.Local.json
+.env
+.env.*
+!.env.example
+
+# Temporary project files
+scratch/
+
+# OS files
+.DS_Store
+Thumbs.db
+

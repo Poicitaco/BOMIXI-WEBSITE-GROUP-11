@@ -1,0 +1,198 @@
+﻿@model List<ShopLaptop_v1.Models.MucGioHang>
+@{
+    ViewData["Title"] = "Giỏ hàng của tôi";
+    string FormatTien(decimal so) => so.ToString("N0") + " VNĐ";
+    decimal tongCong = Model?.Sum(m => m.ThanhTien) ?? 0;
+}
+
+<div class="max-w-[1280px] mx-auto px-8 py-12">
+    <h1 class="font-['Space_Grotesk'] text-3xl font-bold text-white mb-2">Giỏ hàng của tôi</h1>
+    <p class=" text-gray-500 text-sm mb-10">@(Model?.Count ?? 0) sản phẩm đang chờ bạn</p>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="flex flex-col items-center justify-center py-32 text-center">
+            <span class="material-symbols-outlined text-8xl text-[#252525] mb-6">shopping_cart</span>
+            <h2 class="font-['Space_Grotesk'] text-2xl text-white mb-3">Giỏ hàng trống</h2>
+            <p class=" text-gray-500 mb-8 max-w-sm">Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá các laptop tuyệt vời của chúng tôi!</p>
+            <a asp-controller="Home" asp-action="Index"
+               class="bg-accent-cyber-lime text-black font-['Space_Grotesk'] font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-all hover:scale-105 active:scale-95 flex items-center gap-2">
+                <span class="material-symbols-outlined">laptop</span>
+                Mua sắm ngay
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="flex flex-col lg:flex-row gap-8">
+            <!-- Danh sách sản phẩm trong giỏ -->
+            <div class="flex-grow space-y-4" id="danh-sach-gio-hang">
+                @foreach (var muc in Model)
+                {
+                    <div class="bg-[#1A1A1A] border border-[#252525] rounded-xl p-5 flex flex-col sm:flex-row items-center gap-5 hover:border-[#333] transition-all" id="muc-@muc.MaBienThe">
+                        <!-- Ảnh -->
+                        <div class="w-24 h-24 bg-black rounded-lg flex-shrink-0 overflow-hidden flex items-center justify-center p-2">
+                            @if (!string.IsNullOrEmpty(muc.HinhAnh))
+                            {
+                                <img src="@muc.HinhAnh" alt="@muc.TenSanPham" class="w-full h-full object-contain" />
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined text-4xl text-[#333]">laptop</span>
+                            }
+                        </div>
+                        <!-- Thông tin -->
+                        <div class="flex-grow text-center sm:text-left">
+                            <h3 class="font-['Space_Grotesk'] font-semibold text-white mb-1">@muc.TenSanPham</h3>
+                            <p class=" text-xs text-gray-500 mb-2">@muc.CauHinh</p>
+                            <div class="font-['Space_Grotesk'] font-bold text-accent-cyber-lime">@FormatTien(muc.DonGia)</div>
+                        </div>
+                        <!-- Thành tiền -->
+                        <div class="text-center flex-shrink-0 min-w-[120px]">
+                            <div class="font-['Space_Grotesk'] text-xl font-black text-white mb-3">
+                                <span id="thanh-tien-@muc.MaBienThe">@FormatTien(muc.ThanhTien)</span>
+                            </div>
+                            <!-- Số lượng -->
+                            <div class="flex items-center justify-center gap-2 mb-3">
+                                <button onclick="capNhatSoLuong(@muc.MaBienThe, -1)"
+                                        class="w-8 h-8 flex items-center justify-center bg-[#0D0D0D] border border-[#252525] rounded-lg text-white hover:border-accent-cyber-lime hover:text-accent-cyber-lime transition-all text-sm font-bold">
+                                    −
+                                </button>
+                                <span class="font-['Space_Grotesk'] font-bold text-white w-8 text-center text-lg" id="sl-@muc.MaBienThe">@muc.SoLuong</span>
+                                <button onclick="capNhatSoLuong(@muc.MaBienThe, 1)"
+                                        class="w-8 h-8 flex items-center justify-center bg-[#0D0D0D] border border-[#252525] rounded-lg text-white hover:border-accent-cyber-lime hover:text-accent-cyber-lime transition-all text-sm font-bold">
+                                    +
+                                </button>
+                            </div>
+                            <button onclick="xoaKhoiGioHang(@muc.MaBienThe)"
+                                    class=" text-xs text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 mx-auto">
+                                <span class="material-symbols-outlined text-sm">delete</span>Xóa
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Tóm tắt đơn hàng -->
+            <div class="w-full lg:w-80 flex-shrink-0">
+                <div class="bg-[#1A1A1A] border border-[#252525] rounded-xl p-6 sticky top-28">
+                    <h2 class="font-['Space_Grotesk'] font-bold text-white text-lg mb-6">Tóm tắt đơn hàng</h2>
+                    <div class="space-y-3 mb-6">
+                        @foreach (var muc in Model)
+                        {
+                            <div class="flex justify-between text-sm">
+                                <span class=" text-gray-400">@muc.TenSanPham <span class="text-[#252525]">×@muc.SoLuong</span></span>
+                                <span class="font-['Space_Grotesk'] text-white font-medium" id="tt-@muc.MaBienThe">@FormatTien(muc.ThanhTien)</span>
+                            </div>
+                        }
+                    </div>
+                    <div class="border-t border-[#252525] pt-4 mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class=" text-gray-400 text-sm">Phí vận chuyển</span>
+                            <span class="font-['Space_Grotesk'] text-green-400 text-sm font-medium">Miễn phí</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="font-['Space_Grotesk'] font-bold text-white">Tổng cộng</span>
+                            <span class="font-['Space_Grotesk'] font-black text-accent-cyber-lime text-xl" id="tong-cong">@FormatTien(tongCong)</span>
+                        </div>
+                    </div>
+
+                    @if (User.Identity!.IsAuthenticated)
+                    {
+                        <a asp-controller="ThanhToan" asp-action="Index"
+                           class="block w-full bg-accent-cyber-lime text-black font-['Space_Grotesk'] font-bold py-4 rounded-lg text-center hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">payment</span>
+                            TIẾN HÀNH THANH TOÁN
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="/Identity/Account/Login?returnUrl=/ThanhToan"
+                           class="block w-full bg-accent-cyber-lime text-black font-['Space_Grotesk'] font-bold py-4 rounded-lg text-center hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">login</span>
+                            ĐĂNG NHẬP ĐỂ THANH TOÁN
+                        </a>
+                        <p class=" text-xs text-gray-500 text-center mt-3">Bạn cần đăng nhập để đặt hàng</p>
+                    }
+
+                    <a asp-controller="Home" asp-action="Index"
+                       class="block w-full text-center  text-sm text-gray-400 hover:text-white transition-colors mt-4">
+                        ← Tiếp tục mua sắm
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    const donGia = {
+        @(Model != null ? string.Join(",", Model.Select(m => $"{m.MaBienThe}: {m.DonGia}")) : "")
+    };
+
+    let soLuong = {
+        @(Model != null ? string.Join(",", Model.Select(m => $"{m.MaBienThe}: {m.SoLuong}")) : "")
+    };
+
+    function formatTien(so) {
+        return new Intl.NumberFormat('vi-VN').format(so) + ' VNĐ';
+    }
+
+    function tinhTongCong() {
+        let tong = 0;
+        for (const ma in soLuong) {
+            tong += donGia[ma] * soLuong[ma];
+        }
+        document.getElementById('tong-cong').textContent = formatTien(tong);
+    }
+
+    async function capNhatSoLuong(maBienThe, thayDoi) {
+        const slHienTai = soLuong[maBienThe] || 1;
+        const slMoi = Math.max(1, slHienTai + thayDoi);
+
+        if (slMoi === slHienTai) return;
+
+        soLuong[maBienThe] = slMoi;
+        document.getElementById(`sl-${maBienThe}`).textContent = slMoi;
+
+        const thanhTien = donGia[maBienThe] * slMoi;
+        document.getElementById(`thanh-tien-${maBienThe}`).textContent = formatTien(thanhTien);
+        document.getElementById(`tt-${maBienThe}`).textContent = formatTien(thanhTien);
+        tinhTongCong();
+
+        // Gửi lên server để đồng bộ session
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        await fetch('/GioHang/CapNhatSoLuong', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token || '' },
+            body: `maBienThe=${maBienThe}&soLuong=${slMoi}`
+        });
+        capNhatSoLuongGioHang(Object.values(soLuong).reduce((a, b) => a + b, 0));
+    }
+
+    async function xoaKhoiGioHang(maBienThe) {
+        const el = document.getElementById(`muc-${maBienThe}`);
+        el.style.opacity = '0.4';
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        const res = await fetch('/GioHang/XoaKhoiGioHang', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token || '' },
+            body: `maBienThe=${maBienThe}`
+        });
+        const data = await res.json();
+        if (data.success) {
+            el.remove();
+            delete soLuong[maBienThe];
+            delete donGia[maBienThe];
+            tinhTongCong();
+            capNhatSoLuongGioHang(Object.values(soLuong).reduce((a, b) => a + b, 0));
+            if (Object.keys(soLuong).length === 0) location.reload();
+        } else {
+            el.style.opacity = '1';
+        }
+    }
+</script>
+@Html.AntiForgeryToken()
+}

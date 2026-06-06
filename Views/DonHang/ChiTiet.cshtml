@@ -1,0 +1,204 @@
+﻿@model ShopLaptop_v1.Models.Order
+@{
+    ViewData["Title"] = $"Đơn hàng #{Model.Id}";
+    string FormatTien(decimal so) => so.ToString("N0") + " VNĐ";
+    string MauTrangThai(string s) => s switch {
+        "ChoXacNhan" => "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.2)]",
+        "DangXuLy"   => "bg-blue-500/10 text-blue-400 border-blue-500/30 shadow-[0_0_10px_rgba(59,130,246,0.2)]",
+        "DangGiao"   => "bg-purple-500/10 text-purple-400 border-purple-500/30 shadow-[0_0_10px_rgba(168,85,247,0.2)]",
+        "HoanThanh"  => "bg-[#00FF66]/10 text-[#00FF66] border-[#00FF66]/30 shadow-[0_0_10px_rgba(0,255,102,0.2)]",
+        "DaHuy"      => "bg-red-500/10 text-red-500 border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
+        _ => "bg-[#222] text-gray-400 border-[#333]"
+    };
+    string TenTrangThai(string s) => s switch {
+        "ChoXacNhan" => "CHỜ XÁC NHẬN", "DangXuLy" => "ĐANG XỬ LÝ",
+        "DangGiao" => "ĐANG GIAO", "HoanThanh" => "HOÀN THÀNH", "DaHuy" => "ĐÃ HỦY", _ => s.ToUpper()
+    };
+}
+
+<style>
+.detail-card {
+    background: #0D0D0D;
+    border: 1px solid #1a1a1a;
+    border-radius: 1.5rem;
+    box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+}
+.product-item {
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+}
+.product-item:hover {
+    border-color: rgba(0,255,102,0.3);
+    background: rgba(0,255,102,0.02);
+}
+.timeline-dot {
+    width: 2rem; height: 2rem; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; z-index: 10; position: relative;
+}
+.timeline-line {
+    width: 2px; height: 100%; position: absolute; left: 1rem; top: 2rem;
+}
+</style>
+
+<div class="max-w-[1100px] mx-auto px-8 py-12 relative">
+    <div class="absolute top-0 left-0 w-96 h-96 bg-[#00FF66] opacity-[0.02] blur-[100px] rounded-full pointer-events-none z-0"></div>
+
+    <div class="relative z-10">
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 text-[10px] tracking-widest font-bold uppercase text-gray-500 mb-8">
+            <a asp-controller="DonHang" asp-action="DanhSach" class="hover:text-[#00FF66] transition-colors">Đơn hàng</a>
+            <span class="material-symbols-outlined text-xs">chevron_right</span>
+            <span class="text-white">Chi tiết #@Model.Id</span>
+        </div>
+
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10 pb-6 border-b border-[#1a1a1a]">
+            <div>
+                <h1 class="font-['Space_Grotesk'] text-4xl font-black text-white italic tracking-tighter mb-2">CHI TIẾT <span class="text-gray-600">#</span>@Model.Id</h1>
+                <p class="text-sm text-gray-400 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px]">schedule</span> Khởi tạo: @Model.OrderDate.ToString("HH:mm - dd/MM/yyyy")
+                </p>
+            </div>
+            <div class="px-5 py-2 rounded-lg border font-['Space_Grotesk'] text-[11px] tracking-[0.2em] font-bold @MauTrangThai(Model.Status)">
+                @TenTrangThai(Model.Status)
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Danh sách sản phẩm -->
+            <div class="lg:col-span-2 space-y-6">
+                <h2 class="font-['Space_Grotesk'] font-bold text-white text-lg tracking-wider uppercase flex items-center gap-3">
+                    <span class="material-symbols-outlined text-[#00FF66]">shopping_bag</span> Danh sách vũ khí
+                </h2>
+                
+                <div class="space-y-4">
+                    @foreach (var chiTiet in Model.OrderDetails)
+                    {
+                        var sanPham = chiTiet.ProductVariant?.Product;
+                        var hinhAnh = sanPham?.Images?.FirstOrDefault(i => i.IsMainImage)?.ImageUrl ?? sanPham?.Images?.FirstOrDefault()?.ImageUrl;
+                        <div class="product-item p-4 md:p-6 flex flex-col sm:flex-row gap-6">
+                            <div class="w-24 h-24 bg-[#050505] rounded-xl flex-shrink-0 flex items-center justify-center p-2 border border-[#222] shadow-inner relative overflow-hidden group">
+                                <div class="absolute inset-0 bg-[#00FF66]/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                @if (!string.IsNullOrEmpty(hinhAnh))
+                                {
+                                    <img src="@hinhAnh" alt="@sanPham?.Name" class="w-full h-full object-contain drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)]" />
+                                }
+                                else
+                                {
+                                    <span class="material-symbols-outlined text-[#333] text-3xl">laptop</span>
+                                }
+                            </div>
+                            <div class="flex-1 flex flex-col justify-between">
+                                <div>
+                                    <h3 class="font-['Space_Grotesk'] font-bold text-white text-lg tracking-wide leading-tight">@(sanPham?.Name ?? "Sản phẩm")</h3>
+                                    <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mt-2 bg-[#222] inline-block px-2 py-1 rounded">
+                                        @chiTiet.ProductVariant?.RAM / @chiTiet.ProductVariant?.Storage
+                                        @if (!string.IsNullOrEmpty(chiTiet.ProductVariant?.Color))
+                                        {
+                                            <span>/ @chiTiet.ProductVariant.Color</span>
+                                        }
+                                    </p>
+                                </div>
+                                <div class="flex items-end justify-between mt-4 border-t border-[#222] pt-3">
+                                    <span class="text-sm font-bold text-gray-400 bg-[#1a1a1a] px-3 py-1 rounded-lg">x@(chiTiet.Quantity)</span>
+                                    <span class="font-['Space_Grotesk'] font-black text-[#00FF66] text-xl">@FormatTien(chiTiet.UnitPrice * chiTiet.Quantity)</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Thông tin đơn hàng & Sidebar -->
+            <div class="space-y-6">
+                <!-- Vận chuyển -->
+                <div class="detail-card p-6">
+                    <h2 class="font-['Space_Grotesk'] font-bold text-white text-sm uppercase tracking-widest mb-5 border-b border-[#1a1a1a] pb-3">Logistics</h2>
+                    <div class="space-y-4">
+                        <div class="flex gap-4 group">
+                            <span class="material-symbols-outlined text-gray-600 group-hover:text-[#00FF66] transition-colors">phone_in_talk</span>
+                            <p class="text-sm text-gray-300 font-medium">@Model.PhoneNumber</p>
+                        </div>
+                        <div class="flex gap-4 group">
+                            <span class="material-symbols-outlined text-gray-600 group-hover:text-[#00FF66] transition-colors">location_on</span>
+                            <p class="text-sm text-gray-300 leading-relaxed font-medium">@Model.ShippingAddress</p>
+                        </div>
+                        <div class="flex gap-4 group">
+                            <span class="material-symbols-outlined text-gray-600 group-hover:text-[#00FF66] transition-colors">account_balance_wallet</span>
+                            <p class="text-sm text-gray-300 font-medium">COD (Thanh toán khi nhận)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tóm tắt thanh toán -->
+                <div class="detail-card p-6">
+                    <h2 class="font-['Space_Grotesk'] font-bold text-white text-sm uppercase tracking-widest mb-5 border-b border-[#1a1a1a] pb-3">Tài chính</h2>
+                    <div class="space-y-3 font-medium text-sm text-gray-400">
+                        <div class="flex justify-between">
+                            <span>Giá trị hàng hóa</span>
+                            <span>@FormatTien(Model.OrderDetails.Sum(d => d.UnitPrice * d.Quantity))</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Cước vận chuyển</span>
+                            <span class="text-[#00FF66] bg-[#00FF66]/10 px-2 rounded font-bold uppercase text-[10px] tracking-widest flex items-center">Free Ship</span>
+                        </div>
+                        <div class="border-t border-[#1a1a1a] pt-4 mt-4 flex flex-col gap-1">
+                            <span class="text-[10px] uppercase font-bold tracking-widest text-gray-500">Tổng cộng thanh toán</span>
+                            <span class="font-['Space_Grotesk'] font-black text-[#00FF66] text-3xl drop-shadow-[0_0_10px_rgba(0,255,102,0.2)]">@FormatTien(Model.TotalAmount)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div class="detail-card p-6">
+                    <h2 class="font-['Space_Grotesk'] font-bold text-white text-sm uppercase tracking-widest mb-6">Tiến trình</h2>
+                    @{
+                        var cacBuoc = new[] { 
+                            ("ChoXacNhan", "Xác nhận", "pending_actions"), 
+                            ("DangXuLy", "Xử lý", "memory"), 
+                            ("DangGiao", "Vận chuyển", "local_shipping"), 
+                            ("HoanThanh", "Hoàn tất", "task_alt") 
+                        };
+                        var thuTuHienTai = Array.FindIndex(cacBuoc, b => b.Item1 == Model.Status);
+                    }
+                    <div class="relative pl-2">
+                        @for (int i = 0; i < cacBuoc.Length; i++)
+                        {
+                            bool daQua = i <= thuTuHienTai && Model.Status != "DaHuy";
+                            bool laBuocHienTai = i == thuTuHienTai;
+                            
+                            <div class="flex items-center gap-6 mb-6 last:mb-0 relative">
+                                @if (i < cacBuoc.Length - 1)
+                                {
+                                    <div class="timeline-line @(daQua && i < thuTuHienTai ? "bg-[#00FF66]/30" : "bg-[#222]")"></div>
+                                }
+                                <div class="timeline-dot @(laBuocHienTai ? "bg-[#00FF66] shadow-[0_0_15px_#00FF66]" : daQua ? "bg-[#00FF66]/20 border border-[#00FF66]/50" : "bg-[#111] border border-[#333]")">
+                                    <span class="material-symbols-outlined text-[16px] @(laBuocHienTai ? "text-black font-bold" : daQua ? "text-[#00FF66]" : "text-gray-600")">@cacBuoc[i].Item3</span>
+                                </div>
+                                <div>
+                                    <p class="font-['Space_Grotesk'] uppercase text-xs tracking-widest font-bold @(laBuocHienTai ? "text-[#00FF66]" : daQua ? "text-white" : "text-gray-500")">@cacBuoc[i].Item2</p>
+                                </div>
+                            </div>
+                        }
+                        @if (Model.Status == "DaHuy")
+                        {
+                            <div class="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-3">
+                                <span class="material-symbols-outlined text-red-500">dangerous</span>
+                                <p class="text-sm text-red-400 font-bold tracking-wide uppercase">Giao dịch bị hủy</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <a asp-action="DanhSach" class="w-full font-['Space_Grotesk'] text-[10px] tracking-[0.2em] font-bold uppercase text-gray-400 border border-[#222] bg-[#111] hover:bg-[#222] hover:text-white px-4 py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">keyboard_return</span> Trở về danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

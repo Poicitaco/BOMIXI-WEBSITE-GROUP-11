@@ -1,0 +1,523 @@
+@model ShopLaptop_v1.Models.Product
+@{
+    ViewData["Title"] = Model.Name;
+    var bienThes = Model.Variants.OrderBy(v => v.Price).ToList();
+    var bienTheChon = bienThes.FirstOrDefault();
+    var goiY = ViewData["GoiY"] as List<ShopLaptop_v1.Models.Product>;
+    string FormatTien(decimal so) => so.ToString("N0") + " VNĐ";
+}
+
+<style>
+    @@keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in-up {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .glass-panel {
+        background: rgba(13, 13, 13, 0.7);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .selected-config {
+        box-shadow: 0 0 20px rgba(204, 255, 0, 0.15);
+        border-color: #CCFF00 !important;
+        background: rgba(204, 255, 0, 0.05) !important;
+    }
+</style>
+
+<div class="max-w-[1280px] mx-auto px-8 py-12 animate-fade-in-up">
+    <!-- Breadcrumb -->
+    <nav class="mb-8 flex items-center gap-2  text-sm text-gray-500">
+        <a asp-controller="Home" asp-action="Index" class="hover:text-accent-cyber-lime transition-colors">Trang chủ</a>
+        <span class="material-symbols-outlined text-sm">chevron_right</span>
+        <a asp-controller="Home" asp-action="Index" asp-route-danhMuc="@Model.Category?.Slug" class="hover:text-accent-cyber-lime transition-colors">@Model.Category?.Name</a>
+        <span class="material-symbols-outlined text-sm">chevron_right</span>
+        <span class="text-white">@Model.Name</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+        <!-- Cột ảnh -->
+        <div>
+            <div class="glass-panel rounded-2xl overflow-hidden aspect-square flex items-center justify-center p-12 relative group">
+                <div class="absolute inset-0 bg-gradient-to-tr from-accent-cyber-lime/[0.03] to-transparent pointer-events-none"></div>
+                @{
+                    var anhChinh = Model.Images.FirstOrDefault(i => i.IsMainImage)?.ImageUrl ?? Model.Images.FirstOrDefault()?.ImageUrl;
+                }
+                @if (!string.IsNullOrEmpty(anhChinh))
+                {
+                    <img id="anh-chinh" src="@anhChinh" alt="@Model.Name" class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 ease-in-out drop-shadow-2xl" />
+                }
+                else
+                {
+                    <span class="material-symbols-outlined text-8xl text-[#333]">laptop</span>
+                }
+            </div>
+            <!-- Ảnh nhỏ bên dưới -->
+            @if (Model.Images.Count > 1)
+            {
+                <div class="flex gap-3 mt-4">
+                    @foreach (var anh in Model.Images.Take(5))
+                    {
+                        <button onclick="document.getElementById('anh-chinh').src='@anh.ImageUrl'"
+                                class="w-16 h-16 bg-[#0D0D0D] border border-[#252525] rounded-lg overflow-hidden hover:border-accent-cyber-lime/50 transition-all flex-shrink-0 p-2">
+                            <img src="@anh.ImageUrl" alt="" class="w-full h-full object-contain" />
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Cột thông tin -->
+        <div>
+            <span class="font-['Space_Grotesk'] text-[10px] tracking-widest uppercase text-accent-cyber-lime border border-accent-cyber-lime/30 px-3 py-1 rounded mb-4 inline-block">@Model.Category?.Name</span>
+            <h1 class="font-['Space_Grotesk'] text-3xl font-bold text-white mb-4">@Model.Name</h1>
+            <p class=" text-gray-400 mb-8">@Model.Description</p>
+
+            <!-- Chọn cấu hình -->
+            <div class="mb-6">
+                <h3 class="font-['Space_Grotesk'] text-xs tracking-widest uppercase text-white mb-3 font-semibold">Chọn cấu hình</h3>
+                <div class="space-y-2" id="danh-sach-bien-the">
+                    @foreach (var bt in bienThes)
+                    {
+                        <label class="block cursor-pointer">
+                            <input type="radio" name="bienThe" value="@bt.Id" class="sr-only peer"
+                                   data-gia="@(bt.DiscountPrice ?? bt.Price)"
+                                   data-gia-goc="@bt.Price"
+                                   data-co-giam="@(bt.DiscountPrice.HasValue ? "true" : "false")"
+                                   data-ton-kho="@bt.StockQuantity"
+                                   onchange="capNhatGia(this)"
+                                   @(bt.Id == bienTheChon?.Id ? "checked" : "") />
+                            <div class="config-panel border border-[#252525] rounded-xl p-5 transition-all duration-300 hover:border-accent-cyber-lime/50 hover:shadow-[0_0_15px_rgba(204,255,0,0.1)] @(bt.Id == bienTheChon?.Id ? "selected-config" : "bg-[#111]")">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <p class=" text-sm text-white font-medium">@bt.CPU · @bt.RAM · @bt.Storage</p>
+                                        @if (!string.IsNullOrEmpty(bt.GPU))
+                                        {
+                                            <p class=" text-xs text-gray-500">@bt.GPU · @bt.Screen · @bt.Color</p>
+                                        }
+                                    </div>
+                                    <div class="text-right ml-4">
+                                        <div class="font-['Space_Grotesk'] font-bold text-accent-cyber-lime">@FormatTien(bt.DiscountPrice ?? bt.Price)</div>
+                                        @if (bt.DiscountPrice.HasValue)
+                                        {
+                                            <div class=" text-xs text-gray-500 line-through">@FormatTien(bt.Price)</div>
+                                        }
+                                    </div>
+                                </div>
+                                @if (bt.StockQuantity <= 5 && bt.StockQuantity > 0)
+                                {
+                                    <span class="font-['Space_Grotesk'] text-[10px] tracking-widest text-accent-vivid-orange uppercase mt-2 block flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[10px]">warning</span> Chỉ còn @bt.StockQuantity chiếc
+                                    </span>
+                                }
+                                @if (bt.StockQuantity == 0)
+                                {
+                                    <span class="font-['Space_Grotesk'] text-[10px] tracking-widest text-red-400 uppercase mt-2 block">Hết hàng</span>
+                                }
+                            </div>
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <!-- Giá hiển thị -->
+            <div class="bg-[#0D0D0D] border border-[#252525] rounded-lg p-5 mb-6">
+                <div class="flex items-end gap-3">
+                    <div id="hien-thi-gia" class="font-['Space_Grotesk'] text-4xl font-black text-accent-cyber-lime">
+                        @FormatTien(bienTheChon?.DiscountPrice ?? bienTheChon?.Price ?? 0)
+                    </div>
+                    @if (bienTheChon?.DiscountPrice.HasValue == true)
+                    {
+                        <div id="hien-thi-gia-goc" class=" text-lg text-gray-500 line-through mb-1">
+                            @FormatTien(bienTheChon.Price)
+                        </div>
+                    }
+                    else
+                    {
+                        <div id="hien-thi-gia-goc" class=" text-lg text-gray-500 line-through mb-1 hidden"></div>
+                    }
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="material-symbols-outlined text-green-400 text-sm">local_shipping</span>
+                    <span class=" text-xs text-green-400">Miễn phí giao hàng toàn quốc</span>
+                </div>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="flex gap-4">
+                <button id="btn-them-gio"
+                        onclick="themVaoGioHangChiTiet()"
+                        class="flex-1 relative overflow-hidden group bg-accent-cyber-lime hover:bg-white text-black font-['Space_Grotesk'] font-bold py-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(204,255,0,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]">
+                    <span class="absolute inset-0 w-full h-full bg-white/20 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></span>
+                    <span class="material-symbols-outlined relative z-10 transition-transform group-hover:scale-110 group-active:scale-95">shopping_cart</span>
+                    <span class="relative z-10 uppercase tracking-widest text-sm">Thêm vào giỏ hàng</span>
+                </button>
+                <a asp-controller="GioHang" asp-action="Index"
+                   class="glass-panel text-white font-['Space_Grotesk'] font-bold py-4 px-6 rounded-xl hover:border-accent-cyber-lime hover:text-accent-cyber-lime transition-all flex items-center gap-2 group">
+                    <span class="material-symbols-outlined transition-transform group-hover:scale-110">shopping_bag</span>
+                </a>
+                <button onclick="themVaoSoSanh(@Model.Id, event)"
+                        class="glass-panel text-white font-['Space_Grotesk'] font-bold py-4 px-6 rounded-xl hover:border-accent-electric-blue hover:text-accent-electric-blue transition-all flex items-center gap-2 group"
+                        title="Thêm vào so sánh">
+                    <span class="material-symbols-outlined transition-transform group-hover:scale-110 group-hover:rotate-180 duration-500">compare_arrows</span>
+                </button>
+            </div>
+
+            <!-- Tồn kho -->
+            <p id="thong-bao-ton-kho" class=" text-xs text-gray-500 mt-3 text-center">
+                Còn <span class="text-white font-medium">@bienTheChon?.StockQuantity</span> sản phẩm trong kho
+            </p>
+        </div>
+    </div>
+
+    <!-- CHI TIẾT SẢN PHẨM & THÔNG SỐ KỸ THUẬT -->
+    <div class="border-t border-[#252525] pt-12 mb-12 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Mô tả sản phẩm -->
+        <div class="lg:col-span-2">
+            <h2 class="font-['Space_Grotesk'] text-2xl font-bold text-white mb-6">Mô tả sản phẩm</h2>
+            <div class=" text-gray-400 leading-relaxed space-y-4">
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    var paragraphs = Model.Description.Split('\n');
+                    foreach (var p in paragraphs)
+                    {
+                        if (!string.IsNullOrWhiteSpace(p))
+                        {
+                            <p>@p</p>
+                        }
+                    }
+                }
+                else
+                {
+                    <p class="italic text-gray-600">Đang cập nhật mô tả chi tiết cho sản phẩm này.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Bảng thông số kỹ thuật -->
+        <div class="lg:col-span-1">
+            <h2 class="font-['Space_Grotesk'] text-2xl font-bold text-white mb-6">Thông số kỹ thuật</h2>
+            <div class="bg-[#1A1A1A] border border-[#252525] rounded-xl overflow-hidden">
+                <table class="w-full text-sm ">
+                    <tbody>
+                        <tr class="border-b border-[#252525]">
+                            <td class="py-3 px-4 text-gray-500 bg-[#111] w-1/3">CPU</td>
+                            <td class="py-3 px-4 text-white" id="spec-cpu">@bienTheChon?.CPU</td>
+                        </tr>
+                        <tr class="border-b border-[#252525]">
+                            <td class="py-3 px-4 text-gray-500 bg-[#111]">RAM</td>
+                            <td class="py-3 px-4 text-white" id="spec-ram">@bienTheChon?.RAM</td>
+                        </tr>
+                        <tr class="border-b border-[#252525]">
+                            <td class="py-3 px-4 text-gray-500 bg-[#111]">Ổ cứng</td>
+                            <td class="py-3 px-4 text-white" id="spec-storage">@bienTheChon?.Storage</td>
+                        </tr>
+                        <tr class="border-b border-[#252525]">
+                            <td class="py-3 px-4 text-gray-500 bg-[#111]">Card đồ họa</td>
+                            <td class="py-3 px-4 text-white" id="spec-gpu">@(string.IsNullOrEmpty(bienTheChon?.GPU) ? "Đang cập nhật" : bienTheChon.GPU)</td>
+                        </tr>
+                        <tr class="border-b border-[#252525]">
+                            <td class="py-3 px-4 text-gray-500 bg-[#111]">Màn hình</td>
+                            <td class="py-3 px-4 text-white" id="spec-screen">@(string.IsNullOrEmpty(bienTheChon?.Screen) ? "Đang cập nhật" : bienTheChon.Screen)</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 px-4 text-gray-500 bg-[#111]">Màu sắc</td>
+                            <td class="py-3 px-4 text-white" id="spec-color">@(string.IsNullOrEmpty(bienTheChon?.Color) ? "Đang cập nhật" : bienTheChon.Color)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PHẦN ĐÁNH GIÁ SẢN PHẨM -->
+    @{
+        var danhSachDanhGia = ViewData["DanhSachDanhGia"] as List<ShopLaptop_v1.Models.DanhGia> ?? new();
+        double diemTrungBinh = (double)(ViewData["DiemTrungBinh"] ?? 0.0);
+        int tongDanhGia = (int)(ViewData["TongDanhGia"] ?? 0);
+        int soSaoCuaUser = (int)(ViewData["SoSaoCuaUser"] ?? 0);
+        string? nhanXetCuaUser = ViewData["DanhGiaCuaUser"] as string;
+    }
+    <div class="border-t border-[#252525] pt-12 mb-12">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+                <h2 class="font-['Space_Grotesk'] text-2xl font-bold text-white">Đánh giá sản phẩm</h2>
+                <p class=" text-gray-500 text-sm mt-1">@tongDanhGia đánh giá</p>
+            </div>
+            <!-- Điểm trung bình -->
+            @if (tongDanhGia > 0)
+            {
+                <div class="flex items-center gap-3 bg-[#1A1A1A] border border-[#252525] rounded-xl px-6 py-4">
+                    <span class="font-['Space_Grotesk'] text-5xl font-black text-accent-cyber-lime">@diemTrungBinh.ToString("0.0")</span>
+                    <div>
+                        <div class="flex gap-0.5 mb-1" id="sao-trung-binh">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <span class="material-symbols-outlined text-lg @(i <= Math.Round(diemTrungBinh) ? "text-yellow-400" : "text-[#333]")" style="font-variation-settings: 'FILL' 1">star</span>
+                            }
+                        </div>
+                        <p class=" text-xs text-gray-500">@tongDanhGia lượt đánh giá</p>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Form gửi đánh giá -->
+            <div class="lg:col-span-1">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="bg-[#1A1A1A] border border-[#252525] rounded-xl p-6 sticky top-24">
+                        <h3 class="font-['Space_Grotesk'] font-semibold text-white mb-4">
+                            @(soSaoCuaUser > 0 ? "Cập nhật đánh giá của bạn" : "Viết đánh giá")
+                        </h3>
+                        <div id="ket-qua-danh-gia" class="hidden mb-3 bg-green-900/20 border border-green-900/40 rounded-lg p-3  text-sm text-green-400"></div>
+                        <!-- Chọn số sao -->
+                        <div class="flex gap-2 mb-4" id="nhom-sao">
+                            @for (int sao = 1; sao <= 5; sao++)
+                            {
+                                <button type="button" onclick="chonSao(@sao)"
+                                        class="star-btn material-symbols-outlined text-3xl transition-colors @(sao <= soSaoCuaUser ? "text-yellow-400" : "text-[#333] hover:text-yellow-400")"
+                                        data-so-sao="@sao"
+                                        style="font-variation-settings: 'FILL' 1">star</button>
+                            }
+                        </div>
+                        <input type="hidden" id="so-sao-chon" value="@soSaoCuaUser" />
+                        <textarea id="nhan-xet" rows="4" maxlength="500"
+                                  class="w-full bg-[#111] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all resize-none mb-4"
+                                  placeholder="Chia sẻ trải nghiệm của bạn...">@nhanXetCuaUser</textarea>
+                        <button onclick="guiDanhGia(@Model.Id)"
+                                class="w-full bg-accent-cyber-lime text-black font-['Space_Grotesk'] font-bold py-2.5 rounded-lg hover:opacity-90 transition-all flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-sm">rate_review</span>
+                            @(soSaoCuaUser > 0 ? "CẬP NHẬT" : "GỬI ĐÁNH GIÁ")
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="bg-[#1A1A1A] border border-[#252525] rounded-xl p-6 text-center">
+                        <span class="material-symbols-outlined text-4xl text-[#333] mb-3 block">rate_review</span>
+                        <p class=" text-sm text-gray-500 mb-4">Đăng nhập để đánh giá sản phẩm</p>
+                        <a asp-area="Identity" asp-page="/Account/Login"
+                           class="font-['Space_Grotesk'] text-[10px] tracking-widest uppercase text-black bg-accent-cyber-lime px-4 py-2 rounded-lg hover:opacity-90 transition-all font-bold">
+                            Đăng nhập ngay
+                        </a>
+                    </div>
+                }
+            </div>
+
+            <!-- Danh sách đánh giá -->
+            <div class="lg:col-span-2 space-y-4" id="danh-sach-danh-gia">
+                @if (!danhSachDanhGia.Any())
+                {
+                    <div class="text-center py-12">
+                        <span class="material-symbols-outlined text-5xl text-[#252525] mb-3 block">comment</span>
+                        <p class=" text-gray-600">Chưa có đánh giá nào. Hãy là người đầu tiên!</p>
+                    </div>
+                }
+                @foreach (var dg in danhSachDanhGia)
+                {
+                    <div class="bg-[#1A1A1A] border border-[#252525] rounded-xl p-5">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 bg-accent-cyber-lime/10 rounded-full flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-accent-cyber-lime text-sm">person</span>
+                                </div>
+                                <div>
+                                    <p class="font-['Space_Grotesk'] text-white text-sm font-semibold">@(dg.User?.FullName ?? dg.User?.Email?.Split('@')[0] ?? "Ẩn danh")</p>
+                                    <p class=" text-xs text-gray-600">@dg.NgayDanhGia.ToString("dd/MM/yyyy")</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-0.5">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <span class="material-symbols-outlined text-base @(i <= dg.SoSao ? "text-yellow-400" : "text-[#333]")" style="font-variation-settings: 'FILL' 1">star</span>
+                                }
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(dg.NhanXet))
+                        {
+                            <p class=" text-sm text-gray-300 leading-relaxed">@dg.NhanXet</p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Sản phẩm gợi ý -->
+    @if (goiY != null && goiY.Any())
+    {
+        <div class="border-t border-[#252525] pt-12">
+            <h2 class="font-['Space_Grotesk'] text-2xl font-bold text-white mb-8">Sản phẩm tương tự</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                @foreach (var sp in goiY)
+                {
+                    var giaGoiY = sp.Variants.Any() ? sp.Variants.Min(v => v.DiscountPrice ?? v.Price) : 0;
+                    var anhGoiY = sp.Images.FirstOrDefault(i => i.IsMainImage)?.ImageUrl ?? sp.Images.FirstOrDefault()?.ImageUrl ?? "";
+                    <a asp-action="ChiTiet" asp-route-id="@sp.Id"
+                       class="group bg-[#1A1A1A] border border-[#252525] rounded-lg overflow-hidden flex flex-col hover:border-accent-cyber-lime/50 transition-all">
+                        <div class="h-40 bg-black flex items-center justify-center p-6">
+                            @if (!string.IsNullOrEmpty(anhGoiY))
+                            {
+                                <img src="@anhGoiY" alt="@sp.Name" class="h-full object-contain group-hover:scale-105 transition-transform" />
+                            }
+                            else
+                            {
+                                <span class="material-symbols-outlined text-4xl text-[#333]">laptop</span>
+                            }
+                        </div>
+                        <div class="p-4">
+                            <p class="font-['Space_Grotesk'] text-sm font-semibold text-white group-hover:text-accent-cyber-lime transition-colors">@sp.Name</p>
+                            <p class="font-['Space_Grotesk'] text-sm font-bold text-accent-cyber-lime mt-1">@FormatTien(giaGoiY)</p>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    let maBienTheChon = @(bienTheChon?.Id ?? 0);
+
+    function capNhatGia(input) {
+        maBienTheChon = parseInt(input.value);
+        const gia = parseFloat(input.dataset.gia);
+        const giaGoc = parseFloat(input.dataset.giaGoc);
+        const coGiam = input.dataset.coGiam === 'true';
+        const tonKho = parseInt(input.dataset.tonKho);
+
+        // Update classes for visual selection
+        document.querySelectorAll('.config-panel').forEach(panel => {
+            panel.classList.remove('selected-config');
+            panel.classList.add('bg-[#111]');
+        });
+        const selectedPanel = input.closest('label').querySelector('.config-panel');
+        if (selectedPanel) {
+            selectedPanel.classList.add('selected-config');
+            selectedPanel.classList.remove('bg-[#111]');
+        }
+
+        document.getElementById('hien-thi-gia').textContent = new Intl.NumberFormat('vi-VN').format(gia) + ' VNĐ';
+        const elGiaGoc = document.getElementById('hien-thi-gia-goc');
+
+        if (coGiam) {
+            elGiaGoc.textContent = new Intl.NumberFormat('vi-VN').format(giaGoc) + ' VNĐ';
+            elGiaGoc.classList.remove('hidden');
+        } else {
+            elGiaGoc.classList.add('hidden');
+        }
+
+        document.getElementById('thong-bao-ton-kho').innerHTML = `Còn <span class="text-white font-medium">${tonKho}</span> sản phẩm trong kho`;
+        const btnThem = document.getElementById('btn-them-gio');
+        if (tonKho === 0) {
+            btnThem.disabled = true;
+            btnThem.classList.replace('bg-accent-cyber-lime', 'bg-[#252525]');
+            btnThem.classList.replace('text-black', 'text-gray-400');
+        } else {
+            btnThem.disabled = false;
+            btnThem.classList.replace('bg-[#252525]', 'bg-accent-cyber-lime');
+            btnThem.classList.replace('text-gray-400', 'text-black');
+        }
+    }
+
+    async function themVaoGioHangChiTiet() {
+        if (!maBienTheChon) return;
+        const btn = document.getElementById('btn-them-gio');
+        const banDau = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined">sync</span> ĐANG THÊM...';
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const res = await fetch('/GioHang/ThemVaoGioHang', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token || '' },
+                body: `maBienThe=${maBienTheChon}&soLuong=1`
+            });
+            const data = await res.json();
+            if (data.success) {
+                btn.innerHTML = banDau;
+                btn.disabled = false;
+                capNhatSoLuongGioHang(data.tongSoLuong);
+                showToast('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
+            } else {
+                btn.innerHTML = banDau;
+                btn.disabled = false;
+                showToast(data.message || 'Có lỗi xảy ra', 'error');
+            }
+        } catch (e) {
+            btn.innerHTML = banDau;
+            btn.disabled = false;
+            showToast('Lỗi kết nối đến máy chủ', 'error');
+        }
+    }
+
+    // --- Đánh giá sản phẩm ---
+    function chonSao(soSao) {
+        document.getElementById('so-sao-chon').value = soSao;
+        document.querySelectorAll('.star-btn').forEach(btn => {
+            const s = parseInt(btn.dataset.soSao);
+            btn.classList.toggle('text-yellow-400', s <= soSao);
+            btn.classList.toggle('text-[#333]', s > soSao);
+        });
+    }
+
+    async function guiDanhGia(maSanPham) {
+        const soSao = parseInt(document.getElementById('so-sao-chon').value);
+        const nhanXet = document.getElementById('nhan-xet').value;
+        if (!soSao || soSao < 1) {
+            showToast('Vui lòng chọn số sao đánh giá!', 'info');
+            return;
+        }
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        try {
+            const res = await fetch('/DanhGia/GuiDanhGia', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token || '' },
+                body: `maSanPham=${maSanPham}&soSao=${soSao}&nhanXet=${encodeURIComponent(nhanXet)}`
+            });
+            const data = await res.json();
+            if (data.success || data.thongBao) {
+                showToast(data.thongBao || 'Cảm ơn bạn đã đánh giá!', 'success');
+                setTimeout(() => { window.location.reload(); }, 1500);
+            } else {
+                showToast(data.thongBao || 'Lỗi khi gửi đánh giá', 'error');
+            }
+        } catch (e) { 
+            console.error(e);
+            showToast('Lỗi kết nối đến máy chủ', 'error');
+        }
+    }
+
+    async function themVaoSoSanh(id, event) {
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const res = await fetch(`/SoSanh/Them/${id}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token || ''
+                }
+            });
+            const data = await res.json();
+            if (data.success) {
+                const countElem = document.getElementById('so-sanh-count');
+                if (countElem) {
+                    countElem.textContent = data.count;
+                    countElem.classList.remove('hidden');
+                }
+                showToast('Đã thêm sản phẩm vào danh sách so sánh!', 'success');
+            } else {
+                showToast(data.message || 'Không thể thêm vào so sánh', 'info');
+            }
+        } catch(e) {
+            console.error('Lỗi thêm so sánh:', e);
+            showToast('Lỗi kết nối đến máy chủ', 'error');
+        }
+    }
+</script>
+@Html.AntiForgeryToken()
+}

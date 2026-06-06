@@ -1,0 +1,68 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ShopLaptop_v1.Models.ApplicationUser> SignInManager
+@inject UserManager<ShopLaptop_v1.Models.ApplicationUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <div class="flex items-center gap-3">
+        @if (User.IsInRole("QuanTri"))
+        {
+            <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"
+               class="font-['Space_Grotesk'] text-[10px] tracking-widest uppercase text-accent-cyber-lime border border-accent-cyber-lime/30 px-3 py-1.5 rounded-lg hover:bg-accent-cyber-lime/10 transition-all hidden sm:flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs">admin_panel_settings</span> Admin
+            </a>
+        }
+        <a asp-controller="DonHang" asp-action="DanhSach"
+           class=" text-sm text-gray-400 hover:text-white transition-colors hidden sm:flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">receipt_long</span>
+        </a>
+        <div class="relative group">
+            <button class="w-8 h-8 bg-[#1A1A1A] border border-[#252525] rounded-full flex items-center justify-center hover:border-accent-cyber-lime/50 transition-all">
+                <span class="material-symbols-outlined text-gray-400 text-sm">person</span>
+            </button>
+            <!-- Dropdown -->
+            <div class="absolute right-0 top-10 w-52 bg-[#1A1A1A] border border-[#252525] rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 p-2">
+                <div class="px-3 py-2 border-b border-[#252525] mb-2">
+                    <p class="font-['Space_Grotesk'] text-white text-sm font-medium truncate">@(UserManager.GetUserAsync(User).Result?.FullName ?? "Thành viên")</p>
+                    <p class=" text-xs text-gray-500 truncate">@User.Identity!.Name</p>
+                </div>
+                <a asp-controller="TaiKhoan" asp-action="HoSo"
+                   class="flex items-center gap-2 px-3 py-2 rounded-lg  text-sm text-gray-400 hover:text-white hover:bg-[#252525] transition-all">
+                    <span class="material-symbols-outlined text-sm">manage_accounts</span> Hồ sơ cá nhân
+                </a>
+                <a asp-controller="DonHang" asp-action="DanhSach"
+                   class="flex items-center gap-2 px-3 py-2 rounded-lg  text-sm text-gray-400 hover:text-white hover:bg-[#252525] transition-all">
+                    <span class="material-symbols-outlined text-sm">receipt_long</span> Đơn hàng của tôi
+                </a>
+                @if (User.IsInRole("QuanTri"))
+                {
+                    <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg  text-sm text-accent-cyber-lime hover:bg-accent-cyber-lime/10 transition-all">
+                        <span class="material-symbols-outlined text-sm">admin_panel_settings</span> Trang Admin
+                    </a>
+                }
+                <div class="border-t border-[#252525] mt-2 pt-2">
+                    <form method="post" action="/Identity/Account/Logout">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="flex w-full items-center gap-2 px-3 py-2 rounded-lg  text-sm text-red-400 hover:bg-red-900/20 transition-all">
+                            <span class="material-symbols-outlined text-sm">logout</span> Đăng xuất
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="flex items-center gap-3">
+        <a asp-area="Identity" asp-page="/Account/Login"
+           class=" text-sm text-gray-400 hover:text-white transition-colors">
+            Đăng nhập
+        </a>
+        <a asp-area="Identity" asp-page="/Account/Register"
+           class="font-['Space_Grotesk'] text-[10px] tracking-widest uppercase text-black bg-accent-cyber-lime px-4 py-2 rounded-lg hover:opacity-90 transition-all font-bold">
+            Đăng ký
+        </a>
+    </div>
+}

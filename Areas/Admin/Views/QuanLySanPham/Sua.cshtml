@@ -1,0 +1,114 @@
+@{
+    ViewData["Title"] = "Chỉnh sửa sản phẩm";
+    var sanPham = ViewData["SanPham"] as ShopLaptop_v1.Models.Product;
+    var bienThe = sanPham?.Variants.FirstOrDefault();
+    var danhSachDanhMuc = ViewData["DanhSachDanhMuc"] as List<ShopLaptop_v1.Models.Category> ?? new();
+    var hinhHienTai = sanPham?.Images.FirstOrDefault(i => i.IsMainImage)?.ImageUrl ?? sanPham?.Images.FirstOrDefault()?.ImageUrl;
+}
+
+<div class="max-w-3xl">
+    @if (TempData["LoiSua"] != null)
+    {
+        <div class="bg-red-900/20 border border-red-900/40 rounded-lg p-4 mb-6  text-sm text-red-400">@TempData["LoiSua"]</div>
+    }
+
+    <form asp-area="Admin" asp-controller="QuanLySanPham" asp-action="CapNhat" method="post" class="space-y-6">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@sanPham?.Id" />
+        <input type="hidden" name="maBienThe" value="@bienThe?.Id" />
+
+        <div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl p-6">
+            <h2 class="font-['Space_Grotesk'] font-semibold text-white mb-5">Thông tin cơ bản</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">Tên sản phẩm *</label>
+                    <input name="tenSanPham" type="text" required value="@sanPham?.Name"
+                           class="w-full bg-[#111] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all" />
+                </div>
+                <div>
+                    <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">Hãng sản xuất *</label>
+                    <select name="maDanhMuc" required
+                            class="w-full bg-[#111] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all">
+                        @foreach (var dm in danhSachDanhMuc)
+                        {
+                            if (sanPham?.CategoryId == dm.Id)
+                            {
+                                <option value="@dm.Id" selected>@dm.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@dm.Id">@dm.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">Mô tả</label>
+                    <textarea name="moTa" rows="3"
+                              class="w-full bg-[#111] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all resize-none">@sanPham?.Description</textarea>
+                </div>
+                <div>
+                    <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">URL hình ảnh (Nhập nhiều URL, mỗi URL một dòng)</label>
+                    <textarea name="urlHinhAnh" rows="4"
+                              class="w-full bg-[#111] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all resize-none"
+                              placeholder="https://image1.jpg&#10;https://image2.jpg">@string.Join("\n", sanPham?.Images.Select(i => i.ImageUrl) ?? new List<string>())</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl p-6">
+            <h2 class="font-['Space_Grotesk'] font-semibold text-white mb-5">Cấu hình kỹ thuật</h2>
+            <div class="grid grid-cols-2 gap-4">
+                @{
+                    var caiDat = new[] {
+                        ("CPU *", "cpu", bienThe?.CPU ?? "", "Intel Core i7-1360P"),
+                        ("RAM *", "ram", bienThe?.RAM ?? "", "16GB DDR5"),
+                        ("Bộ nhớ *", "storage", bienThe?.Storage ?? "", "512GB NVMe SSD"),
+                        ("GPU", "gpu", bienThe?.GPU ?? "", "NVIDIA RTX 4060"),
+                        ("Màn hình", "screen", bienThe?.Screen ?? "", "15.6\" FHD IPS"),
+                        ("Màu sắc", "mauSac", bienThe?.Color ?? "", "Đen / Bạc")
+                    };
+                }
+                @foreach (var (ten, name, giaTriHienTai, placeholder) in caiDat)
+                {
+                    <div>
+                        <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">@ten</label>
+                        <input name="@name" type="text" value="@giaTriHienTai"
+                               class="w-full bg-[#111] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all"
+                               placeholder="@placeholder" />
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl p-6">
+            <h2 class="font-['Space_Grotesk'] font-semibold text-white mb-5">Giá & Tồn kho</h2>
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">Giá gốc (VND) *</label>
+                    <input name="gia" type="number" min="0" required value="@bienThe?.Price"
+                           class="w-full bg-[#111] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all" />
+                </div>
+                <div>
+                    <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">Giá khuyến mãi</label>
+                    <input name="giaKhuyenMai" type="number" min="0" value="@bienThe?.DiscountPrice"
+                           class="w-full bg-[#111] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all"
+                           placeholder="Để trống nếu không" />
+                </div>
+                <div>
+                    <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">Số lượng tồn kho *</label>
+                    <input name="soLuong" type="number" min="0" required value="@bienThe?.StockQuantity"
+                           class="w-full bg-[#111] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all" />
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <button type="submit"
+                    class="bg-accent-cyber-lime text-black font-['Space_Grotesk'] font-bold px-8 py-3 rounded-lg hover:opacity-90 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">save</span> LƯU THAY ĐỔI
+            </button>
+            <a asp-action="Index" class=" text-sm text-gray-500 hover:text-white transition-colors">Hủy</a>
+        </div>
+    </form>
+</div>

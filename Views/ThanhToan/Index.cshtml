@@ -1,0 +1,184 @@
+﻿@{
+    ViewData["Title"] = "Thanh toán";
+    var gioHang = ViewData["GioHang"] as List<ShopLaptop_v1.Models.MucGioHang>;
+    decimal tongCong = gioHang?.Sum(m => m.ThanhTien) ?? 0;
+    string FormatTien(decimal so) => so.ToString("N0") + " VNĐ";
+}
+
+<div class="max-w-[1280px] mx-auto px-8 py-12">
+    <h1 class="font-['Space_Grotesk'] text-3xl font-bold text-white mb-2">Thanh toán</h1>
+    <p class=" text-gray-500 text-sm mb-10">Hoàn tất thông tin để đặt hàng</p>
+
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Form thông tin giao hàng -->
+        <div class="flex-grow">
+            <div class="bg-[#1A1A1A] border border-[#252525] rounded-xl p-8 mb-6">
+                <h2 class="font-['Space_Grotesk'] font-bold text-white text-lg mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-accent-cyber-lime">local_shipping</span>
+                    Thông tin giao hàng
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">Họ và tên</label>
+                        <input id="ho-ten" type="text" value="@User.Identity!.Name?.Split('@')[0]"
+                               class="w-full bg-[#0D0D0D] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all"
+                               placeholder="Nhập họ và tên" />
+                    </div>
+                    <div>
+                        <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">Số điện thoại</label>
+                        <input id="so-dien-thoai" type="tel"
+                               class="w-full bg-[#0D0D0D] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all"
+                               placeholder="VD: 0912345678" />
+                    </div>
+                    <div>
+                        <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">Địa chỉ giao hàng</label>
+                        <textarea id="dia-chi" rows="3"
+                                  class="w-full bg-[#0D0D0D] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all resize-none"
+                                  placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-[#1A1A1A] border border-[#252525] rounded-xl p-8">
+                <h2 class="font-['Space_Grotesk'] font-bold text-white text-lg mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-accent-cyber-lime">payment</span>
+                    Phương thức thanh toán
+                </h2>
+                <div class="space-y-3">
+                    <label class="flex items-center gap-4 p-4 border border-[#252525] rounded-lg cursor-pointer hover:border-accent-cyber-lime/50 transition-all peer-checked:border-accent-cyber-lime">
+                        <input type="radio" name="pttt" value="cod" checked class="text-accent-cyber-lime focus:ring-accent-cyber-lime" />
+                        <div>
+                            <p class="font-['Space_Grotesk'] text-white font-medium text-sm">Thanh toán khi nhận hàng (COD)</p>
+                            <p class=" text-gray-500 text-xs">Kiểm tra hàng trước khi trả tiền</p>
+                        </div>
+                        <span class="material-symbols-outlined text-accent-cyber-lime ml-auto">payments</span>
+                    </label>
+                    <label class="flex items-center gap-4 p-4 border border-[#252525] rounded-lg cursor-pointer hover:border-accent-cyber-lime/50 transition-all opacity-50">
+                        <input type="radio" name="pttt" value="bank" disabled class="text-accent-cyber-lime" />
+                        <div>
+                            <p class="font-['Space_Grotesk'] text-white font-medium text-sm">Chuyển khoản ngân hàng</p>
+                            <p class=" text-gray-500 text-xs">Sắp ra mắt</p>
+                        </div>
+                        <span class="material-symbols-outlined text-gray-500 ml-auto">account_balance</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tóm tắt đơn hàng -->
+        <div class="w-full lg:w-80 flex-shrink-0">
+            <div class="bg-[#1A1A1A] border border-[#252525] rounded-xl p-6 sticky top-28">
+                <h2 class="font-['Space_Grotesk'] font-bold text-white text-lg mb-6">Đơn hàng của bạn</h2>
+                <div class="space-y-4 mb-6">
+                    @if (gioHang != null)
+                    {
+                        @foreach (var muc in gioHang)
+                        {
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-black rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden p-1">
+                                    @if (!string.IsNullOrEmpty(muc.HinhAnh))
+                                    {
+                                        <img src="@muc.HinhAnh" alt="@muc.TenSanPham" class="w-full h-full object-contain" />
+                                    }
+                                    else
+                                    {
+                                        <span class="material-symbols-outlined text-2xl text-[#333]">laptop</span>
+                                    }
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <p class="font-['Space_Grotesk'] text-white text-xs font-medium truncate">@muc.TenSanPham</p>
+                                    <p class=" text-gray-500 text-[10px]">SL: @muc.SoLuong</p>
+                                </div>
+                                <div class="font-['Space_Grotesk'] text-white text-xs font-bold flex-shrink-0">@FormatTien(muc.ThanhTien)</div>
+                            </div>
+                        }
+                    }
+                </div>
+                <div class="border-t border-[#252525] pt-4 space-y-2 mb-6">
+                    <div class="flex justify-between text-sm">
+                        <span class=" text-gray-400">Tạm tính</span>
+                        <span class="font-['Space_Grotesk'] text-white font-medium">@FormatTien(tongCong)</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class=" text-gray-400">Phí vận chuyển</span>
+                        <span class="font-['Space_Grotesk'] text-green-400 font-medium">Miễn phí</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-[#252525]">
+                        <span class="font-['Space_Grotesk'] font-bold text-white">Tổng cộng</span>
+                        <span class="font-['Space_Grotesk'] font-black text-accent-cyber-lime text-xl">@FormatTien(tongCong)</span>
+                    </div>
+                </div>
+
+                <button id="btn-dat-hang" onclick="datHang()"
+                        class="w-full bg-accent-cyber-lime text-black font-['Space_Grotesk'] font-bold py-4 rounded-lg hover:opacity-90 transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    XÁC NHẬN ĐẶT HÀNG
+                </button>
+                <p class=" text-xs text-gray-600 text-center mt-3">Bằng cách đặt hàng, bạn đồng ý với điều khoản sử dụng của chúng tôi</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thành công -->
+<div id="modal-thanh-cong" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+    <div class="bg-[#1A1A1A] border border-accent-cyber-lime/30 rounded-xl p-10 max-w-md w-full mx-4 text-center">
+        <div class="w-20 h-20 bg-accent-cyber-lime/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span class="material-symbols-outlined text-4xl text-accent-cyber-lime">check_circle</span>
+        </div>
+        <h2 class="font-['Space_Grotesk'] text-2xl font-bold text-white mb-3">Đặt hàng thành công!</h2>
+        <p class=" text-gray-400 text-sm mb-2">Mã đơn hàng của bạn: <span id="ma-don-hang" class="text-accent-cyber-lime font-bold">#---</span></p>
+        <p class=" text-gray-500 text-xs mb-8">Chúng tôi sẽ liên hệ với bạn trong vòng 24 giờ để xác nhận đơn hàng.</p>
+        <a asp-controller="Home" asp-action="Index"
+           class="block w-full bg-accent-cyber-lime text-black font-['Space_Grotesk'] font-bold py-3 rounded-lg hover:opacity-90 transition-all">
+            Tiếp tục mua sắm
+        </a>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+async function datHang() {
+    const hoTen = document.getElementById('ho-ten').value.trim();
+    const diaChi = document.getElementById('dia-chi').value.trim();
+    const soDienThoai = document.getElementById('so-dien-thoai').value.trim();
+
+    if (!hoTen || !diaChi || !soDienThoai) {
+        alert('Vui lòng điền đầy đủ thông tin giao hàng!');
+        return;
+    }
+    if (!/^[0-9]{9,11}$/.test(soDienThoai)) {
+        alert('Số điện thoại không hợp lệ!');
+        return;
+    }
+
+    const btn = document.getElementById('btn-dat-hang');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin">sync</span> ĐANG XỬ LÝ...';
+
+    try {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        const res = await fetch('/ThanhToan/DatHang', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token || '' },
+            body: `diaChiGiaoHang=${encodeURIComponent(diaChi)}&soDienThoai=${encodeURIComponent(soDienThoai)}`
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById('ma-don-hang').textContent = '#' + data.maDonHang;
+            document.getElementById('modal-thanh-cong').classList.remove('hidden');
+            capNhatSoLuongGioHang(0);
+        } else {
+            alert('Có lỗi xảy ra: ' + (data.message || 'Thử lại sau'));
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> XÁC NHẬN ĐẶT HÀNG';
+        }
+    } catch(e) {
+        alert('Lỗi kết nối, vui lòng thử lại!');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> XÁC NHẬN ĐẶT HÀNG';
+    }
+}
+</script>
+@Html.AntiForgeryToken()
+}
