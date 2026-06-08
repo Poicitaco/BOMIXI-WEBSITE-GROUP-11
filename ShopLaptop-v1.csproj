@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ShopLaptop-v1.Tests\**\*.cs" />
+    <Content Remove="ShopLaptop-v1.Tests\**\*" />
+    <EmbeddedResource Remove="ShopLaptop-v1.Tests\**\*" />
+    <None Remove="ShopLaptop-v1.Tests\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.7" />

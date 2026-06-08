@@ -54,25 +54,25 @@ namespace ShopLaptop_v1.Controllers
             // Lọc theo RAM
             if (!string.IsNullOrEmpty(ram))
             {
-                query = query.Where(p => p.Variants.Any(v => v.RAM.Contains(ram)));
+                query = query.Where(p => p.Variants.Any(v => v.RAM != null && v.RAM.Contains(ram)));
             }
 
             // Lọc theo CPU
             if (!string.IsNullOrEmpty(cpu))
             {
-                query = query.Where(p => p.Variants.Any(v => v.CPU.Contains(cpu)));
+                query = query.Where(p => p.Variants.Any(v => v.CPU != null && v.CPU.Contains(cpu)));
             }
 
             // Lọc theo VGA
             if (!string.IsNullOrEmpty(vga))
             {
-                query = query.Where(p => p.Variants.Any(v => v.GPU.Contains(vga)));
+                query = query.Where(p => p.Variants.Any(v => v.GPU != null && v.GPU.Contains(vga)));
             }
 
             // Lọc theo Độ phân giải/Màn hình
             if (!string.IsNullOrEmpty(doPhanGiai))
             {
-                query = query.Where(p => p.Variants.Any(v => v.Screen.Contains(doPhanGiai)));
+                query = query.Where(p => p.Variants.Any(v => v.Screen != null && v.Screen.Contains(doPhanGiai)));
             }
 
             // Cache danh muc 5 phut
@@ -159,7 +159,7 @@ namespace ShopLaptop_v1.Controllers
             var model = new TrangChuViewModel
             {
                 DanhSachSanPham = ketQua.ToPagedList(pageNumber, pageSize),
-                DanhSachDanhMuc = danhSachDanhMuc,
+                DanhSachDanhMuc = danhSachDanhMuc ?? new List<Category>(),
                 DanhMucDangChon = danhMuc,
                 TuKhoa = tuKhoa,
                 SapXep = sapXep,

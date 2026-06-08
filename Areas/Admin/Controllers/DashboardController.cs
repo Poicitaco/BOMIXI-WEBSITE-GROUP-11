@@ -47,10 +47,11 @@ namespace ShopLaptop_v1.Areas.Admin.Controllers
             // Top 5 sản phẩm bán chạy
             var topSanPham = await _context.OrderDetails
                 .Include(od => od.ProductVariant)
-                    .ThenInclude(pv => pv.Product)
-                .GroupBy(od => od.ProductVariant.ProductId)
+                    .ThenInclude(pv => pv!.Product)
+                .Where(od => od.ProductVariant != null && od.ProductVariant.Product != null)
+                .GroupBy(od => od.ProductVariant!.ProductId)
                 .Select(g => new {
-                    Ten = g.First().ProductVariant.Product.Name,
+                    Ten = g.First().ProductVariant!.Product!.Name,
                     SoLuong = g.Sum(od => od.Quantity),
                     DoanhThu = g.Sum(od => od.Quantity * od.UnitPrice)
                 })
