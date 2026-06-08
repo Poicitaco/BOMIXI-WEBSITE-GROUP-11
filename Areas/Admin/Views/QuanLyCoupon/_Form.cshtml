@@ -1,0 +1,36 @@
+@model ShopLaptop_v1.Models.Coupon
+
+<div asp-validation-summary="All" class="text-red-400 text-sm mb-4"></div>
+<div class="grid md:grid-cols-2 gap-5">
+    <label class="text-sm text-gray-400">Ma coupon
+        <input asp-for="Code" class="input-admin mt-2 uppercase" />
+    </label>
+    <label class="text-sm text-gray-400">Ten chuong trinh
+        <input asp-for="Name" class="input-admin mt-2" />
+    </label>
+    <label class="text-sm text-gray-400">Loai giam
+        <select asp-for="DiscountType" class="input-admin mt-2"><option value="Percent">Phan tram</option><option value="Fixed">So tien co dinh</option></select>
+    </label>
+    <label class="text-sm text-gray-400">Gia tri giam
+        <input asp-for="DiscountValue" type="number" min="1" class="input-admin mt-2" />
+    </label>
+    <label class="text-sm text-gray-400">Giam toi da
+        <input asp-for="MaxDiscountAmount" type="number" min="0" class="input-admin mt-2" />
+    </label>
+    <label class="text-sm text-gray-400">Don toi thieu
+        <input asp-for="MinimumOrderAmount" type="number" min="0" class="input-admin mt-2" />
+    </label>
+    <label class="text-sm text-gray-400">Gioi han luot dung (0 = vo han)
+        <input asp-for="UsageLimit" type="number" min="0" class="input-admin mt-2" />
+    </label>
+    <label class="text-sm text-gray-400 flex items-center gap-3 mt-7">
+        <input asp-for="IsActive" class="w-4 h-4" /> Kich hoat
+    </label>
+    <label class="text-sm text-gray-400">Bat dau
+        <input asp-for="StartDate" type="datetime-local" class="input-admin mt-2" />
+    </label>
+    <label class="text-sm text-gray-400">Ket thuc
+        <input asp-for="EndDate" type="datetime-local" class="input-admin mt-2" />
+    </label>
+</div>
+<button type="submit" class="mt-6 bg-accent-cyber-lime text-black px-6 py-3 rounded-lg font-bold text-sm">Luu coupon</button>
