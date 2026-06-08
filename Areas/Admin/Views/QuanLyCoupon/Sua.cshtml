@@ -1,0 +1,6 @@
+@model ShopLaptop_v1.Models.Coupon
+@{ ViewData["Title"] = "Sua coupon"; }
+<h1 class="font-['Space_Grotesk'] text-3xl font-black mb-6">Sua coupon @Model.Code</h1>
+<form method="post" asp-route-id="@Model.Id" class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl p-6">
+    <partial name="_Form" model="Model" />
+</form>

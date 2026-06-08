@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "npx tailwindcss -i ./wwwroot/css/site.css -o ./wwwroot/css/tailwind.css --watch"
+    "test": "npm run test:css",
+    "build:css": "npx tailwindcss -i ./wwwroot/css/site.css -o ./wwwroot/css/tailwind.css",
+    "test:css": "npx tailwindcss -i ./wwwroot/css/site.css -o ./scratch/tailwind-check.css",
+    "dev:css": "npx tailwindcss -i ./wwwroot/css/site.css -o ./wwwroot/css/tailwind.css --watch"
   },
   "keywords": [],
   "author": "",
