@@ -54,6 +54,7 @@ namespace ShopLaptop_v1.Controllers
                 .ThenInclude(pv => pv!.Product)
                 .ThenInclude(p => p!.Images)
                 .Include(o => o.StatusHistories)
+                .Include(o => o.Payments)
                 .FirstOrDefaultAsync(o => o.Id == id && o.UserId == user.Id);
 
             if (donHang == null) return NotFound();

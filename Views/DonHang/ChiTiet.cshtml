@@ -15,6 +15,7 @@
         "ChoXacNhan" => "CHỜ XÁC NHẬN", "DangXuLy" => "ĐANG XỬ LÝ",
         "DangGiao" => "ĐANG GIAO", "HoanThanh" => "HOÀN THÀNH", "DaHuy" => "ĐÃ HỦY", _ => s.ToUpper()
     };
+    var payment = Model.Payments.OrderByDescending(p => p.CreatedAt).FirstOrDefault();
 }
 
 <style>
@@ -133,8 +134,15 @@
                         </div>
                         <div class="flex gap-4 group">
                             <span class="material-symbols-outlined text-gray-600 group-hover:text-[#00FF66] transition-colors">account_balance_wallet</span>
-                            <p class="text-sm text-gray-300 font-medium">COD (Thanh toán khi nhận)</p>
+                            <p class="text-sm text-gray-300 font-medium">@Model.PaymentMethod (@(payment?.Status ?? "Pending"))</p>
                         </div>
+                        @if (!string.IsNullOrWhiteSpace(payment?.TransactionCode))
+                        {
+                            <div class="flex gap-4 group">
+                                <span class="material-symbols-outlined text-gray-600 group-hover:text-[#00FF66] transition-colors">tag</span>
+                                <p class="text-xs text-[#00FF66] font-mono break-all">@payment.TransactionCode</p>
+                            </div>
+                        }
                     </div>
                 </div>
 
@@ -144,7 +152,11 @@
                     <div class="space-y-3 font-medium text-sm text-gray-400">
                         <div class="flex justify-between">
                             <span>Giá trị hàng hóa</span>
-                            <span>@FormatTien(Model.OrderDetails.Sum(d => d.UnitPrice * d.Quantity))</span>
+                            <span>@FormatTien(Model.SubtotalAmount > 0 ? Model.SubtotalAmount : Model.OrderDetails.Sum(d => d.UnitPrice * d.Quantity))</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Giảm giá @(!string.IsNullOrWhiteSpace(Model.CouponCode) ? $"({Model.CouponCode})" : "")</span>
+                            <span class="text-red-400">-@FormatTien(Model.DiscountAmount)</span>
                         </div>
                         <div class="flex justify-between">
                             <span>Cước vận chuyển</span>

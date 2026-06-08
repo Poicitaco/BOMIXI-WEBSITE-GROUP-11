@@ -15,16 +15,19 @@ namespace ShopLaptop_v1.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly CartService _cartService;
+        private readonly CouponService _couponService;
         private const string GIO_HANG_KEY = "GioHang_Session";
 
         public ThanhToanController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            CartService cartService)
+            CartService cartService,
+            CouponService couponService)
         {
             _context = context;
             _userManager = userManager;
             _cartService = cartService;
+            _couponService = couponService;
         }
 
         [HttpGet]
@@ -51,7 +54,46 @@ namespace ShopLaptop_v1.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DatHang(string diaChiGiaoHang, string soDienThoai)
+        public async Task<IActionResult> ApDungMaGiamGia(string? maGiamGia)
+        {
+            var gioHang = HttpContext.Session.Get<List<MucGioHang>>(GIO_HANG_KEY) ?? new List<MucGioHang>();
+            var (items, warnings) = await _cartService.SynchronizeAsync(gioHang);
+            HttpContext.Session.Set(GIO_HANG_KEY, items);
+
+            if (!items.Any())
+            {
+                return Json(new { success = false, message = "Giỏ hàng trống." });
+            }
+
+            if (warnings.Any())
+            {
+                return Json(new { success = false, message = string.Join(" ", warnings) });
+            }
+
+            var subtotal = items.Sum(i => i.ThanhTien);
+            var couponResult = await _couponService.ValidateAsync(maGiamGia, subtotal);
+            if (!couponResult.Success)
+            {
+                return Json(new { success = false, message = couponResult.Message });
+            }
+
+            HttpContext.Session.SetString("Coupon_Code", couponResult.Coupon?.Code ?? string.Empty);
+
+            return Json(new
+            {
+                success = true,
+                message = couponResult.Message,
+                couponCode = couponResult.Coupon?.Code,
+                subtotal,
+                discount = couponResult.DiscountAmount,
+                shippingFee = 0,
+                total = subtotal - couponResult.DiscountAmount
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DatHang(string diaChiGiaoHang, string soDienThoai, string phuongThucThanhToan = "COD", string? maGiamGia = null)
         {
             var gioHang = HttpContext.Session.Get<List<MucGioHang>>(GIO_HANG_KEY) ?? new List<MucGioHang>();
             if (!gioHang.Any())
@@ -83,6 +125,21 @@ namespace ShopLaptop_v1.Controllers
                 return Json(new { success = false, message = $"{khongDuHang.TenSanPham} chỉ còn {khongDuHang.TonKho} sản phẩm trong kho." });
             }
 
+            var subtotal = items.Sum(m => m.ThanhTien);
+            var couponCode = !string.IsNullOrWhiteSpace(maGiamGia)
+                ? maGiamGia
+                : HttpContext.Session.GetString("Coupon_Code");
+            var couponResult = await _couponService.ValidateAsync(couponCode, subtotal);
+            if (!couponResult.Success)
+            {
+                return Json(new { success = false, message = couponResult.Message });
+            }
+
+            var shippingFee = 0m;
+            var discount = couponResult.DiscountAmount;
+            var total = subtotal + shippingFee - discount;
+            var paymentMethod = NormalizePaymentMethod(phuongThucThanhToan);
+
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
             var variantIds = items.Select(i => i.MaBienThe).ToList();
@@ -109,7 +166,12 @@ namespace ShopLaptop_v1.Controllers
                 ShippingAddress = diaChiGiaoHang.Trim(),
                 PhoneNumber = soDienThoai.Trim(),
                 Status = "ChoXacNhan",
-                TotalAmount = items.Sum(m => m.ThanhTien)
+                SubtotalAmount = subtotal,
+                DiscountAmount = discount,
+                ShippingFee = shippingFee,
+                TotalAmount = total,
+                CouponCode = couponResult.Coupon?.Code,
+                PaymentMethod = paymentMethod
             };
 
             _context.Orders.Add(donHang);
@@ -148,10 +210,35 @@ namespace ShopLaptop_v1.Controllers
                 ChangedAt = DateTime.Now
             });
 
+            _context.Payments.Add(new Payment
+            {
+                OrderId = donHang.Id,
+                Method = paymentMethod,
+                Status = paymentMethod == "COD" ? "Pending" : "DemoPaid",
+                Amount = donHang.TotalAmount,
+                TransactionCode = paymentMethod == "COD" ? null : TaoMaGiaoDichDemo(paymentMethod, donHang.Id),
+                CreatedAt = DateTime.Now,
+                PaidAt = paymentMethod == "COD" ? null : DateTime.Now
+            });
+
+            if (couponResult.Coupon != null)
+            {
+                couponResult.Coupon.UsedCount += 1;
+                _context.CouponUsages.Add(new CouponUsage
+                {
+                    CouponId = couponResult.Coupon.Id,
+                    OrderId = donHang.Id,
+                    UserId = user.Id,
+                    DiscountAmount = couponResult.DiscountAmount,
+                    UsedAt = DateTime.Now
+                });
+            }
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
             HttpContext.Session.Remove(GIO_HANG_KEY);
+            HttpContext.Session.Remove("Coupon_Code");
 
             return Json(new
             {
@@ -165,6 +252,21 @@ namespace ShopLaptop_v1.Controllers
         private static string TaoMaDonHang(int id, DateTime orderDate)
         {
             return $"BMX-{orderDate:yyyyMMdd}-{id:D4}";
+        }
+
+        private static string NormalizePaymentMethod(string? method)
+        {
+            return method?.ToUpperInvariant() switch
+            {
+                "QR" => "QR",
+                "CRYPTO" => "CRYPTO",
+                _ => "COD"
+            };
+        }
+
+        private static string TaoMaGiaoDichDemo(string method, int orderId)
+        {
+            return $"{method}-{DateTime.Now:yyyyMMddHHmmss}-{orderId:D4}";
         }
     }
 }
