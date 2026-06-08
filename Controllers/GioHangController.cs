@@ -93,6 +93,45 @@ namespace ShopLaptop_v1.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> ThemNhanh(int maBienThe)
+        {
+            var variant = await _context.ProductVariants
+                .Include(v => v.Product)
+                .ThenInclude(p => p!.Images)
+                .FirstOrDefaultAsync(v => v.Id == maBienThe);
+
+            if (variant == null || variant.StockQuantity <= 0)
+            {
+                TempData["ThatBai"] = "San pham da het hang hoac khong con ton tai.";
+                return RedirectToAction("Index", "YeuThich");
+            }
+
+            var cart = HttpContext.Session.Get<List<MucGioHang>>(GIO_HANG_KEY) ?? new List<MucGioHang>();
+            var (items, _) = await _cartService.SynchronizeAsync(cart);
+            var existing = items.FirstOrDefault(i => i.MaBienThe == maBienThe);
+
+            if (existing == null)
+            {
+                items.Add(_cartService.BuildCartItem(variant, 1));
+            }
+            else if (existing.SoLuong < variant.StockQuantity)
+            {
+                existing.SoLuong++;
+                existing.TonKho = variant.StockQuantity;
+                existing.DonGia = variant.DiscountPrice ?? variant.Price;
+            }
+            else
+            {
+                TempData["ThatBai"] = $"Chi con {variant.StockQuantity} san pham trong kho.";
+                return RedirectToAction("Index", "YeuThich");
+            }
+
+            HttpContext.Session.Set(GIO_HANG_KEY, items);
+            TempData["ThanhCong"] = "Da them san pham yeu thich vao gio hang.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
         public async Task<IActionResult> CapNhatSoLuong(int maBienThe, int soLuong)
         {
             var gioHang = HttpContext.Session.Get<List<MucGioHang>>(GIO_HANG_KEY) ?? new List<MucGioHang>();
