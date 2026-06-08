@@ -9,7 +9,7 @@ using X.PagedList;
 namespace ShopLaptop_v1.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "QuanTri")]
     public class QuanLyDanhMucController : Controller
     {
         private readonly ApplicationDbContext _context;

@@ -527,5 +527,6 @@
     }
 </script>
 @await RenderSectionAsync("Scripts", required: false)
+<div class="hidden" aria-hidden="true">@Html.AntiForgeryToken()</div>
 </body>
 </html>

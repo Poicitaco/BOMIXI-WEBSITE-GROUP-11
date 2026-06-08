@@ -53,6 +53,10 @@
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm @NavClass("BaoCao")">
                 <span class="material-symbols-outlined text-xl">analytics</span> Báo cáo
             </a>
+            <a asp-area="Admin" asp-controller="QuanLyCoupon" asp-action="Index"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm @NavClass("QuanLyCoupon")">
+                <span class="material-symbols-outlined text-xl">sell</span> Coupon
+            </a>
             <a asp-area="Admin" asp-controller="QuanLyBanner" asp-action="Index"
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all  text-sm @NavClass("QuanLyBanner")">
                 <span class="material-symbols-outlined text-xl">ad_units</span> Banner quảng cáo
@@ -98,6 +102,7 @@
         </main>
     </div>
 
+    <div class="hidden" aria-hidden="true">@Html.AntiForgeryToken()</div>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

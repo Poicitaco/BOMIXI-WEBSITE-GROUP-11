@@ -23,7 +23,10 @@ builder.Services.AddAuthentication()
         options.ClientSecret = googleAuthNSection["ClientSecret"] ?? "PLACEHOLDER_CLIENT_SECRET";
     });
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new Microsoft.AspNetCore.Mvc.AutoValidateAntiforgeryTokenAttribute());
+});
 builder.Services.AddRazorPages();
 builder.Services.AddMemoryCache();
 

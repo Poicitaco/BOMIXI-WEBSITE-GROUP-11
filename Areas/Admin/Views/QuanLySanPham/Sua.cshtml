@@ -7,6 +7,10 @@
 }
 
 <div class="max-w-3xl">
+    @if (TempData["LoiThaoTac"] != null)
+    {
+        <div class="bg-red-900/20 border border-red-900/40 rounded-lg p-4 mb-6 text-sm text-red-400">@TempData["LoiThaoTac"]</div>
+    }
     @if (TempData["LoiSua"] != null)
     {
         <div class="bg-red-900/20 border border-red-900/40 rounded-lg p-4 mb-6  text-sm text-red-400">@TempData["LoiSua"]</div>
@@ -86,7 +90,7 @@
             <div class="grid grid-cols-3 gap-4">
                 <div>
                     <label class=" text-xs text-gray-400 uppercase tracking-widest block mb-2">Giá gốc (VND) *</label>
-                    <input name="gia" type="number" min="0" required value="@bienThe?.Price"
+                    <input name="gia" type="number" min="1" required value="@bienThe?.Price"
                            class="w-full bg-[#111] border border-[#252525] rounded-lg px-4 py-3 text-white  text-sm focus:outline-none focus:border-accent-cyber-lime transition-all" />
                 </div>
                 <div>

@@ -54,17 +54,26 @@ namespace ShopLaptop_v1.Areas.Admin.Controllers
             string cpu, string ram, string storage, string? gpu, string? screen, string? mauSac,
             decimal gia, decimal? giaKhuyenMai, int soLuong, string? urlHinhAnh)
         {
+            var validationError = await ValidateProductInput(
+                tenSanPham, maDanhMuc, cpu, ram, storage, gia, giaKhuyenMai, soLuong);
+            if (validationError != null)
+            {
+                TempData["LoiThaoTac"] = validationError;
+                return RedirectToAction("Tao");
+            }
+
             if (string.IsNullOrEmpty(tenSanPham))
             {
                 TempData["LỗI"] = "Tên sản phẩm không được để trống!";
                 return RedirectToAction("Tao");
             }
 
+            await using var transaction = await _context.Database.BeginTransactionAsync();
             var sanPham = new Product
             {
-                Name = tenSanPham,
-                Slug = tenSanPham.ToLower().Replace(" ", "-"),
-                Description = moTa,
+                Name = tenSanPham.Trim(),
+                Slug = CreateSlug(tenSanPham),
+                Description = moTa?.Trim(),
                 CategoryId = maDanhMuc
             };
             _context.Products.Add(sanPham);
@@ -74,12 +83,12 @@ namespace ShopLaptop_v1.Areas.Admin.Controllers
             {
                 ProductId = sanPham.Id,
                 SKU = $"SP-{sanPham.Id}-001",
-                CPU = cpu,
-                RAM = ram,
-                Storage = storage,
-                GPU = gpu,
-                Screen = screen,
-                Color = mauSac,
+                CPU = cpu.Trim(),
+                RAM = ram.Trim(),
+                Storage = storage.Trim(),
+                GPU = gpu?.Trim(),
+                Screen = screen?.Trim(),
+                Color = mauSac?.Trim(),
                 Price = gia,
                 DiscountPrice = giaKhuyenMai,
                 StockQuantity = soLuong
@@ -103,6 +112,7 @@ namespace ShopLaptop_v1.Areas.Admin.Controllers
             }
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
             TempData["ThanhCong"] = $"Đã thêm sản phẩm '{tenSanPham}' thành công!";
             return RedirectToAction("Index");
         }
@@ -111,9 +121,20 @@ namespace ShopLaptop_v1.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Xoa(int id)
         {
-            var sanPham = await _context.Products.FindAsync(id);
+            var sanPham = await _context.Products
+                .Include(p => p.Variants)
+                .FirstOrDefaultAsync(p => p.Id == id);
             if (sanPham != null)
             {
+                var variantIds = sanPham.Variants.Select(v => v.Id).ToList();
+                var daCoTrongDonHang = await _context.OrderDetails
+                    .AnyAsync(d => variantIds.Contains(d.ProductVariantId));
+                if (daCoTrongDonHang)
+                {
+                    TempData["LoiThaoTac"] = "Khong the xoa san pham da phat sinh don hang. Hay dat ton kho ve 0 thay vi xoa.";
+                    return RedirectToAction("Index");
+                }
+
                 _context.Products.Remove(sanPham);
                 await _context.SaveChangesAsync();
                 TempData["ThanhCong"] = "Đã xóa sản phẩm thành công!";
@@ -146,19 +167,27 @@ namespace ShopLaptop_v1.Areas.Admin.Controllers
             int maDanhMuc, string cpu, string ram, string storage, string? gpu, string? screen,
             string? mauSac, decimal gia, decimal? giaKhuyenMai, int soLuong, string? urlHinhAnh)
         {
+            var validationError = await ValidateProductInput(
+                tenSanPham, maDanhMuc, cpu, ram, storage, gia, giaKhuyenMai, soLuong);
+            if (validationError != null)
+            {
+                TempData["LoiThaoTac"] = validationError;
+                return RedirectToAction("Sua", new { id });
+            }
+
             var sanPham = await _context.Products.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == id);
             var bienThe = await _context.ProductVariants.FindAsync(maBienThe);
-            if (sanPham == null || bienThe == null) return NotFound();
+            if (sanPham == null || bienThe == null || bienThe.ProductId != id) return NotFound();
 
             // Cập nhật thông tin sản phẩm
-            sanPham.Name = tenSanPham;
-            sanPham.Slug = tenSanPham.ToLower().Replace(" ", "-");
-            sanPham.Description = moTa;
+            sanPham.Name = tenSanPham.Trim();
+            sanPham.Slug = CreateSlug(tenSanPham);
+            sanPham.Description = moTa?.Trim();
             sanPham.CategoryId = maDanhMuc;
 
             // Cập nhật biến thể
-            bienThe.CPU = cpu; bienThe.RAM = ram; bienThe.Storage = storage;
-            bienThe.GPU = gpu; bienThe.Screen = screen; bienThe.Color = mauSac;
+            bienThe.CPU = cpu.Trim(); bienThe.RAM = ram.Trim(); bienThe.Storage = storage.Trim();
+            bienThe.GPU = gpu?.Trim(); bienThe.Screen = screen?.Trim(); bienThe.Color = mauSac?.Trim();
             bienThe.Price = gia; bienThe.DiscountPrice = giaKhuyenMai;
             bienThe.StockQuantity = soLuong;
 
@@ -186,8 +215,38 @@ namespace ShopLaptop_v1.Areas.Admin.Controllers
         }
 
         // Seed dữ liệu mẫu cho demo
-        [AllowAnonymous]
-        [HttpGet]
+        private async Task<string?> ValidateProductInput(
+            string tenSanPham,
+            int maDanhMuc,
+            string cpu,
+            string ram,
+            string storage,
+            decimal gia,
+            decimal? giaKhuyenMai,
+            int soLuong)
+        {
+            if (string.IsNullOrWhiteSpace(tenSanPham) || tenSanPham.Trim().Length > 200)
+                return "Ten san pham phai co tu 1 den 200 ky tu.";
+            if (!await _context.Categories.AnyAsync(c => c.Id == maDanhMuc))
+                return "Danh muc da chon khong ton tai.";
+            if (string.IsNullOrWhiteSpace(cpu) || string.IsNullOrWhiteSpace(ram) || string.IsNullOrWhiteSpace(storage))
+                return "CPU, RAM va luu tru khong duoc de trong.";
+            if (gia <= 0)
+                return "Gia ban phai lon hon 0.";
+            if (giaKhuyenMai.HasValue && (giaKhuyenMai.Value <= 0 || giaKhuyenMai.Value > gia))
+                return "Gia khuyen mai phai lon hon 0 va khong vuot gia niem yet.";
+            if (soLuong < 0)
+                return "Ton kho khong the la so am.";
+            return null;
+        }
+
+        private static string CreateSlug(string value)
+        {
+            return string.Join("-", value.Trim().ToLowerInvariant()
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        }
+
+        [HttpPost]
         public async Task<IActionResult> SeedDuLieuMau()
         {
             if (await _context.Products.AnyAsync())
