@@ -1,6 +1,7 @@
 ﻿@model ShopLaptop_v1.Models.Order
 @{
-    ViewData["Title"] = $"Đơn hàng #{Model.Id}";
+    var maDonHang = Model.OrderNumber ?? Model.Id.ToString();
+    ViewData["Title"] = $"Đơn hàng #{maDonHang}";
     string FormatTien(decimal so) => so.ToString("N0") + " VNĐ";
     string MauTrangThai(string s) => s switch {
         "ChoXacNhan" => "bg-yellow-500/10 text-yellow-500 border-yellow-500/30 shadow-[0_0_10px_rgba(234,179,8,0.2)]",
@@ -53,13 +54,13 @@
         <div class="flex items-center gap-2 text-[10px] tracking-widest font-bold uppercase text-gray-500 mb-8">
             <a asp-controller="DonHang" asp-action="DanhSach" class="hover:text-[#00FF66] transition-colors">Đơn hàng</a>
             <span class="material-symbols-outlined text-xs">chevron_right</span>
-            <span class="text-white">Chi tiết #@Model.Id</span>
+            <span class="text-white">Chi tiết #@maDonHang</span>
         </div>
 
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10 pb-6 border-b border-[#1a1a1a]">
             <div>
-                <h1 class="font-['Space_Grotesk'] text-4xl font-black text-white italic tracking-tighter mb-2">CHI TIẾT <span class="text-gray-600">#</span>@Model.Id</h1>
+                <h1 class="font-['Space_Grotesk'] text-4xl font-black text-white italic tracking-tighter mb-2">CHI TIẾT <span class="text-gray-600">#</span>@maDonHang</h1>
                 <p class="text-sm text-gray-400 flex items-center gap-2">
                     <span class="material-symbols-outlined text-[16px]">schedule</span> Khởi tạo: @Model.OrderDate.ToString("HH:mm - dd/MM/yyyy")
                 </p>
@@ -80,13 +81,19 @@
                     @foreach (var chiTiet in Model.OrderDetails)
                     {
                         var sanPham = chiTiet.ProductVariant?.Product;
-                        var hinhAnh = sanPham?.Images?.FirstOrDefault(i => i.IsMainImage)?.ImageUrl ?? sanPham?.Images?.FirstOrDefault()?.ImageUrl;
+                        var tenSanPham = !string.IsNullOrWhiteSpace(chiTiet.ProductName) ? chiTiet.ProductName : sanPham?.Name ?? "Sản phẩm";
+                        var cauHinh = !string.IsNullOrWhiteSpace(chiTiet.VariantSnapshot)
+                            ? chiTiet.VariantSnapshot
+                            : $"{chiTiet.ProductVariant?.CPU} | {chiTiet.ProductVariant?.RAM} | {chiTiet.ProductVariant?.Storage}";
+                        var hinhAnh = !string.IsNullOrWhiteSpace(chiTiet.ProductImageUrl)
+                            ? chiTiet.ProductImageUrl
+                            : sanPham?.Images?.FirstOrDefault(i => i.IsMainImage)?.ImageUrl ?? sanPham?.Images?.FirstOrDefault()?.ImageUrl;
                         <div class="product-item p-4 md:p-6 flex flex-col sm:flex-row gap-6">
                             <div class="w-24 h-24 bg-[#050505] rounded-xl flex-shrink-0 flex items-center justify-center p-2 border border-[#222] shadow-inner relative overflow-hidden group">
                                 <div class="absolute inset-0 bg-[#00FF66]/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 @if (!string.IsNullOrEmpty(hinhAnh))
                                 {
-                                    <img src="@hinhAnh" alt="@sanPham?.Name" class="w-full h-full object-contain drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)]" />
+                                    <img src="@hinhAnh" alt="@tenSanPham" class="w-full h-full object-contain drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)]" />
                                 }
                                 else
                                 {
@@ -95,13 +102,9 @@
                             </div>
                             <div class="flex-1 flex flex-col justify-between">
                                 <div>
-                                    <h3 class="font-['Space_Grotesk'] font-bold text-white text-lg tracking-wide leading-tight">@(sanPham?.Name ?? "Sản phẩm")</h3>
+                                    <h3 class="font-['Space_Grotesk'] font-bold text-white text-lg tracking-wide leading-tight">@tenSanPham</h3>
                                     <p class="text-xs text-gray-500 font-bold uppercase tracking-wider mt-2 bg-[#222] inline-block px-2 py-1 rounded">
-                                        @chiTiet.ProductVariant?.RAM / @chiTiet.ProductVariant?.Storage
-                                        @if (!string.IsNullOrEmpty(chiTiet.ProductVariant?.Color))
-                                        {
-                                            <span>/ @chiTiet.ProductVariant.Color</span>
-                                        }
+                                        @cauHinh
                                     </p>
                                 </div>
                                 <div class="flex items-end justify-between mt-4 border-t border-[#222] pt-3">
@@ -195,6 +198,14 @@
                     </div>
                 </div>
 
+                @if (Model.Status == "ChoXacNhan")
+                {
+                    <button onclick="huyDon(@Model.Id)"
+                            class="w-full font-['Space_Grotesk'] text-[10px] tracking-[0.2em] font-bold uppercase text-red-400 border border-red-500/30 bg-red-500/5 hover:bg-red-500 hover:text-white px-4 py-4 rounded-xl transition-all flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">cancel</span> Hủy đơn hàng
+                    </button>
+                }
+
                 <a asp-action="DanhSach" class="w-full font-['Space_Grotesk'] text-[10px] tracking-[0.2em] font-bold uppercase text-gray-400 border border-[#222] bg-[#111] hover:bg-[#222] hover:text-white px-4 py-4 rounded-xl transition-all flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined text-[18px]">keyboard_return</span> Trở về danh sách
                 </a>
@@ -202,3 +213,21 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+async function huyDon(id) {
+    if (!confirm('Bạn chắc chắn muốn hủy đơn hàng này?')) return;
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+    const res = await fetch('/DonHang/HuyDon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token || '' },
+        body: `id=${id}&lyDo=${encodeURIComponent('Khách hàng hủy từ trang chi tiết đơn hàng')}`
+    });
+    const data = await res.json();
+    alert(data.message || (data.success ? 'Đã hủy đơn.' : 'Không thể hủy đơn.'));
+    if (data.success) location.reload();
+}
+</script>
+@Html.AntiForgeryToken()
+}

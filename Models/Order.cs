@@ -7,6 +7,9 @@ namespace ShopLaptop_v1.Models
     {
         public int Id { get; set; }
 
+        [StringLength(30)]
+        public string? OrderNumber { get; set; }
+
         public string UserId { get; set; } = string.Empty;
 
         [ForeignKey("UserId")]
@@ -20,6 +23,13 @@ namespace ShopLaptop_v1.Models
         [StringLength(50)]
         public string Status { get; set; } = "ChoXacNhan";
 
+        public DateTime StatusUpdatedAt { get; set; } = DateTime.Now;
+
+        public DateTime? CancelledAt { get; set; }
+
+        [StringLength(300)]
+        public string? CancelReason { get; set; }
+
         [Required]
         [StringLength(200)]
         public string ShippingAddress { get; set; } = string.Empty;
@@ -29,5 +39,6 @@ namespace ShopLaptop_v1.Models
         public string PhoneNumber { get; set; } = string.Empty;
 
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
+        public ICollection<OrderStatusHistory> StatusHistories { get; set; } = new List<OrderStatusHistory>();
     }
 }

@@ -7,6 +7,7 @@ namespace ShopLaptop_v1.Models
         public string CauHinh { get; set; } = string.Empty; // CPU, RAM, v.v.
         public decimal DonGia { get; set; }
         public int SoLuong { get; set; }
+        public int TonKho { get; set; }
         public string HinhAnh { get; set; } = string.Empty;
         
         public decimal ThanhTien => DonGia * SoLuong;

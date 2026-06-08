@@ -39,6 +39,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpClient<ShopLaptop_v1.Services.AiCompareService>();
 builder.Services.AddHttpClient<ShopLaptop_v1.Services.EmailService>();
 builder.Services.AddScoped<ShopLaptop_v1.Services.SystemSettingService>();
+builder.Services.AddScoped<ShopLaptop_v1.Services.CartService>();
 
 var app = builder.Build();
 

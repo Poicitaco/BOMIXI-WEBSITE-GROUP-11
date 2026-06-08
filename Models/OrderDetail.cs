@@ -16,6 +16,12 @@ namespace ShopLaptop_v1.Models
         [ForeignKey("ProductVariantId")]
         public ProductVariant? ProductVariant { get; set; }
 
+        public string ProductName { get; set; } = string.Empty;
+
+        public string VariantSnapshot { get; set; } = string.Empty;
+
+        public string ProductImageUrl { get; set; } = string.Empty;
+
         public int Quantity { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]

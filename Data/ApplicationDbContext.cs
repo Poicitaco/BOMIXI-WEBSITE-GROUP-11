@@ -12,6 +12,7 @@ namespace ShopLaptop_v1.Data
         public DbSet<ProductImage> ProductImages { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
         public DbSet<DanhGia> DanhGias { get; set; }
         public DbSet<YeuThich> YeuThichs { get; set; }
         public DbSet<Banner> Banners { get; set; }
@@ -26,6 +27,16 @@ namespace ShopLaptop_v1.Data
                 .WithMany(o => o.OrderDetails)
                 .HasForeignKey(od => od.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<OrderStatusHistory>()
+                .HasOne(h => h.Order)
+                .WithMany(o => o.StatusHistories)
+                .HasForeignKey(h => h.OrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<Order>()
+                .HasIndex(o => o.OrderNumber)
+                .IsUnique();
 
             builder.Entity<ProductVariant>()
                 .HasOne(pv => pv.Product)

@@ -1,7 +1,8 @@
 ﻿@model ShopLaptop_v1.Models.Order
 @using System.Globalization
 @{
-    ViewData["Title"] = "Chi tiết Đơn hàng #" + Model.Id;
+    var maDonHang = Model.OrderNumber ?? Model.Id.ToString();
+    ViewData["Title"] = "Chi tiết Đơn hàng #" + maDonHang;
     Layout = "~/Views/Shared/_Layout.cshtml";
     string FormatTien(decimal so) => so.ToString("N0", new CultureInfo("vi-VN")) + " VNĐ";
 }
@@ -11,7 +12,7 @@
     <nav class="mb-8 flex items-center gap-2  text-sm text-gray-500">
         <a asp-area="Admin" asp-controller="QuanLyDonHang" asp-action="Index" class="hover:text-accent-cyber-lime transition-colors">Quản lý Đơn hàng</a>
         <span class="material-symbols-outlined text-sm">chevron_right</span>
-        <span class="text-white">Chi tiết Đơn hàng #@Model.Id</span>
+        <span class="text-white">Chi tiết Đơn hàng #@maDonHang</span>
     </nav>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -21,13 +22,20 @@
             <div class="space-y-4">
                 @foreach (var item in Model.OrderDetails)
                 {
+                    var tenSanPham = !string.IsNullOrWhiteSpace(item.ProductName) ? item.ProductName : item.ProductVariant?.Product?.Name ?? "Sản phẩm";
+                    var cauHinh = !string.IsNullOrWhiteSpace(item.VariantSnapshot)
+                        ? item.VariantSnapshot
+                        : $"{item.ProductVariant?.CPU} | {item.ProductVariant?.RAM} | {item.ProductVariant?.Storage}";
+                    var hinhAnh = !string.IsNullOrWhiteSpace(item.ProductImageUrl)
+                        ? item.ProductImageUrl
+                        : item.ProductVariant?.Product?.Images.FirstOrDefault()?.ImageUrl ?? "/images/placeholder.png";
                     <div class="bg-[#1A1A1A] border border-[#252525] rounded-xl p-5 flex items-center gap-5">
                         <div class="w-20 h-20 bg-black rounded-lg flex-shrink-0 p-2">
-                            <img src="@(item.ProductVariant.Product.Images.FirstOrDefault()?.ImageUrl ?? " /images/placeholder.png")" alt="@item.ProductVariant.Product.Name" class="w-full h-full object-contain" />
+                            <img src="@hinhAnh" alt="@tenSanPham" class="w-full h-full object-contain" />
                         </div>
                         <div class="flex-grow">
-                            <h3 class="font-['Space_Grotesk'] font-semibold text-white">@item.ProductVariant.Product.Name</h3>
-                            <p class=" text-xs text-gray-500">@item.ProductVariant.CPU | @item.ProductVariant.RAM | @item.ProductVariant.Storage</p>
+                            <h3 class="font-['Space_Grotesk'] font-semibold text-white">@tenSanPham</h3>
+                            <p class=" text-xs text-gray-500">@cauHinh</p>
                             <p class=" text-xs text-gray-400 mt-2">
                                 SL: <span class="text-white font-medium">@item.Quantity</span> x 
                                 <span class="text-accent-cyber-lime font-medium">@FormatTien(item.UnitPrice)</span>
@@ -48,7 +56,7 @@
                 <div class="space-y-3  text-sm">
                     <div class="flex justify-between">
                         <span class="text-gray-400">Mã đơn hàng:</span>
-                        <span class="font-medium text-white font-['Space_Grotesk']">#@Model.Id</span>
+                        <span class="font-medium text-white font-['Space_Grotesk']">#@maDonHang</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-400">Ngày đặt:</span>
@@ -60,8 +68,8 @@
                     </div>
                     <div class="pt-4 border-t border-[#252525] mt-4">
                         <h3 class="font-['Space_Grotesk'] font-semibold text-white mb-2">Thông tin khách hàng</h3>
-                        <p class="text-gray-400">Tên: <span class="text-white">@Model.User.FullName</span></p>
-                        <p class="text-gray-400">Email: <span class="text-white">@Model.User.Email</span></p>
+                        <p class="text-gray-400">Tên: <span class="text-white">@(Model.User?.FullName ?? "Khách hàng")</span></p>
+                        <p class="text-gray-400">Email: <span class="text-white">@Model.User?.Email</span></p>
                         <p class="text-gray-400">SĐT: <span class="text-white">@Model.PhoneNumber</span></p>
                         <p class="text-gray-400">Địa chỉ: <span class="text-white">@Model.ShippingAddress</span></p>
                     </div>
