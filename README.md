@@ -46,6 +46,15 @@ dotnet user-secrets set "GroqApi:ApiKey" "your-groq-api-key"
 dotnet user-secrets set "Resend:ApiKey" "your-resend-api-key"
 ```
 
+### Build va chay test
+
+Chay lenh sau truoc khi push de kiem tra ca web va cac logic quan trong:
+
+```bash
+dotnet build ShopLaptop-v1.slnx --no-restore
+dotnet test ShopLaptop-v1.slnx --no-restore
+```
+
 ---
 
 ## 💾 Vấn đề về Dữ liệu (Database)

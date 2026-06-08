@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="ShopLaptop-v1.csproj" />
+  <Project Path="ShopLaptop-v1.Tests/ShopLaptop-v1.Tests.csproj" />
 </Solution>
