@@ -1,0 +1,58 @@
+@model List<ShopLaptop_v1.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Quản lý khách hàng";
+    var counts = ViewData["OrderCounts"] as Dictionary<string, int> ?? new();
+    var totals = ViewData["SpentTotals"] as Dictionary<string, decimal> ?? new();
+}
+
+<div class="flex justify-between items-end mb-6">
+    <div>
+        <h1 class="font-['Space_Grotesk'] text-3xl font-black">Khách hàng</h1>
+        <p class="text-gray-500 text-sm">Quản lý tài khoản và lịch sử mua hàng</p>
+    </div>
+    <form method="get" class="flex gap-2">
+        <input name="tuKhoa" value="@ViewData["TuKhoa"]" placeholder="Email hoặc họ tên"
+               class="bg-[#111] border border-[#252525] rounded-lg px-4 py-2 text-sm text-white" />
+        <button class="bg-accent-cyber-lime text-black px-4 py-2 rounded-lg font-bold text-xs">Tìm kiếm</button>
+    </form>
+</div>
+
+<div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl overflow-x-auto">
+    <table class="w-full text-sm">
+        <thead><tr class="border-b border-[#252525] text-gray-500 text-left">
+            <th class="p-4">Khách hàng</th><th class="p-4">Điện thoại</th><th class="p-4">Đơn hàng</th>
+            <th class="p-4">Đã chi</th><th class="p-4">Trạng thái</th><th class="p-4">Thao tác</th>
+        </tr></thead>
+        <tbody>
+        @foreach (var user in Model)
+        {
+            var locked = user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow;
+            <tr class="border-b border-[#1A1A1A]">
+                <td class="p-4"><p class="text-white font-bold">@(user.FullName ?? "Chưa cập nhật")</p><p class="text-gray-500 text-xs">@user.Email</p></td>
+                <td class="p-4 text-gray-400">@user.PhoneNumber</td>
+                <td class="p-4 text-white">@counts.GetValueOrDefault(user.Id)</td>
+                <td class="p-4 text-accent-cyber-lime font-bold">@totals.GetValueOrDefault(user.Id).ToString("N0") VNĐ</td>
+                <td class="p-4"><span id="status-@user.Id" class="text-xs @(locked ? "text-red-400" : "text-green-400")">@(locked ? "Đã khóa" : "Hoạt động")</span></td>
+                <td class="p-4"><button onclick="toggleUser('@user.Id')" class="border border-[#333] px-3 py-2 rounded-lg text-xs hover:border-accent-cyber-lime">@(locked ? "Mở khóa" : "Khóa")</button></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+<script>
+async function toggleUser(id) {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+    const res = await fetch('/Admin/QuanLyKhachHang/DoiTrangThai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token || '' },
+        body: `id=${encodeURIComponent(id)}`
+    });
+    const data = await res.json();
+    alert(data.message);
+    if (data.success) location.reload();
+}
+</script>
+@Html.AntiForgeryToken()
+}

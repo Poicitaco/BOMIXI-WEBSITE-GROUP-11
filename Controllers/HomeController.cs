@@ -198,7 +198,7 @@ namespace ShopLaptop_v1.Controllers
             // Load danh sách đánh giá
             var danhSachDanhGia = await _context.DanhGias
                 .Include(d => d.User)
-                .Where(d => d.ProductId == id)
+                .Where(d => d.ProductId == id && d.DangHienThi)
                 .OrderByDescending(d => d.NgayDanhGia)
                 .ToListAsync();
 

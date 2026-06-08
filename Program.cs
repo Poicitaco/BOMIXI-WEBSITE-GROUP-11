@@ -39,6 +39,9 @@ builder.Services.AddSession(options =>
 builder.Services.AddHttpClient<ShopLaptop_v1.Services.AiCompareService>();
 builder.Services.AddHttpClient<ShopLaptop_v1.Services.EmailService>();
 builder.Services.AddScoped<ShopLaptop_v1.Services.SystemSettingService>();
+builder.Services.AddScoped<ShopLaptop_v1.Services.CartService>();
+builder.Services.AddScoped<ShopLaptop_v1.Services.CouponService>();
+builder.Services.AddScoped<ShopLaptop_v1.Services.WarrantyService>();
 
 var app = builder.Build();
 
@@ -88,6 +91,7 @@ using (var scope = app.Services.CreateScope())
         await DbSeeder.DuLieuMauSanPham(services);
         await DbSeeder.DuLieuMauBanner(services);
         await DbSeeder.DuLieuMauSetting(services);
+        await DbSeeder.DuLieuMauCoupon(services);
     }
     catch (Exception ex)
     {

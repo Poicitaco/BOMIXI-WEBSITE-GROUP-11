@@ -22,5 +22,12 @@ namespace ShopLaptop_v1.Models
         public string? NhanXet { get; set; }
 
         public DateTime NgayDanhGia { get; set; } = DateTime.Now;
+
+        public bool DaMuaHang { get; set; }
+
+        public bool DangHienThi { get; set; } = true;
+
+        [StringLength(300)]
+        public string? GhiChuKiemDuyet { get; set; }
     }
 }

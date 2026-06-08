@@ -625,5 +625,57 @@ namespace ShopLaptop_v1.Data
             context.SystemSettings.AddRange(settings);
             await context.SaveChangesAsync();
         }
+
+        public static async Task DuLieuMauCoupon(IServiceProvider serviceProvider)
+        {
+            var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+            if (await context.Coupons.AnyAsync()) return;
+
+            var now = DateTime.Now;
+            var coupons = new List<Coupon>
+            {
+                new()
+                {
+                    Code = "BOMIXI10",
+                    Name = "Giảm 10% toàn đơn",
+                    DiscountType = "Percent",
+                    DiscountValue = 10,
+                    MaxDiscountAmount = 2_000_000,
+                    MinimumOrderAmount = 15_000_000,
+                    UsageLimit = 200,
+                    StartDate = now.AddDays(-1),
+                    EndDate = now.AddMonths(1),
+                    IsActive = true
+                },
+                new()
+                {
+                    Code = "STUDENT",
+                    Name = "Ưu đãi sinh viên",
+                    DiscountType = "Fixed",
+                    DiscountValue = 1_000_000,
+                    MinimumOrderAmount = 20_000_000,
+                    UsageLimit = 100,
+                    StartDate = now.AddDays(-1),
+                    EndDate = now.AddMonths(1),
+                    IsActive = true
+                },
+                new()
+                {
+                    Code = "WEB3",
+                    Name = "Ưu đãi ví crypto demo",
+                    DiscountType = "Percent",
+                    DiscountValue = 5,
+                    MaxDiscountAmount = 1_000_000,
+                    MinimumOrderAmount = 10_000_000,
+                    UsageLimit = 100,
+                    StartDate = now.AddDays(-1),
+                    EndDate = now.AddMonths(1),
+                    IsActive = true
+                }
+            };
+
+            context.Coupons.AddRange(coupons);
+            await context.SaveChangesAsync();
+        }
     }
 }

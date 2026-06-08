@@ -41,6 +41,18 @@
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all  text-sm @NavClass("QuanLyDonHang")">
                 <span class="material-symbols-outlined text-xl">receipt_long</span> Đơn hàng
             </a>
+            <a asp-area="Admin" asp-controller="QuanLyKhachHang" asp-action="Index"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm @NavClass("QuanLyKhachHang")">
+                <span class="material-symbols-outlined text-xl">group</span> Khách hàng
+            </a>
+            <a asp-area="Admin" asp-controller="QuanLyDanhGia" asp-action="Index"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm @NavClass("QuanLyDanhGia")">
+                <span class="material-symbols-outlined text-xl">reviews</span> Đánh giá
+            </a>
+            <a asp-area="Admin" asp-controller="BaoCao" asp-action="Index"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm @NavClass("BaoCao")">
+                <span class="material-symbols-outlined text-xl">analytics</span> Báo cáo
+            </a>
             <a asp-area="Admin" asp-controller="QuanLyBanner" asp-action="Index"
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all  text-sm @NavClass("QuanLyBanner")">
                 <span class="material-symbols-outlined text-xl">ad_units</span> Banner quảng cáo
