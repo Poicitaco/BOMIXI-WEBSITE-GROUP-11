@@ -20,59 +20,114 @@ namespace ShopLaptop_v1.Services
             var apiKey = _configuration["GroqApi:ApiKey"];
             var model = _configuration["GroqApi:Model"] ?? "llama3-70b-8192";
 
-            if (string.IsNullOrEmpty(apiKey))
+            if (string.IsNullOrWhiteSpace(apiKey))
             {
-                return "Chưa cấu hình API Key. Vui lòng kiểm tra lại cấu hình.";
+                return "Chưa cấu hình API key AI. Hệ thống vẫn có thể dùng chế độ chấm điểm nội bộ.";
             }
 
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
             var requestBody = new
             {
-                model = model,
+                model,
                 messages = new[]
                 {
                     new
                     {
                         role = "system",
-                        content = @"Bạn là một chuyên gia tư vấn Laptop cao cấp từ hệ thống BOMIXI.
-Nhiệm vụ của bạn là so sánh các sản phẩm người dùng đã chọn và đưa ra lời khuyên dựa trên NHU CẦU CỤ THỂ của họ.
-1. Phải so sánh chi tiết các thông số (CPU, RAM, GPU, Màn hình...).
-2. Phải đánh giá xem sản phẩm nào tối ưu nhất cho nhu cầu đã nêu.
-3. Câu trả lời phải chuyên nghiệp, khách quan, sử dụng Markdown (bao gồm cả bảng so sánh nếu cần).
-4. Ngôn ngữ: Tiếng Việt."
+                        content = @"Bạn là chuyên gia tư vấn laptop của BOMIXI.
+So sánh khách quan, không bịa thông số ngoài dữ liệu được cung cấp.
+Trả lời bằng tiếng Việt, dùng Markdown, có kết luận rõ sản phẩm phù hợp nhất."
                     },
                     new
                     {
                         role = "user",
-                        content = $"Hãy so sánh các laptop sau dựa trên thông số:\n\n{productInfo}"
+                        content = $"Hãy so sánh các laptop sau:\n\n{productInfo}"
                     }
                 },
-                temperature = 0.7,
+                temperature = 0.45,
                 max_tokens = 1000
             };
 
             var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-
             var response = await _httpClient.PostAsync("https://api.groq.com/openai/v1/chat/completions", jsonContent);
 
             if (response.IsSuccessStatusCode)
             {
                 var responseString = await response.Content.ReadAsStringAsync();
-                var jsonDocument = JsonDocument.Parse(responseString);
+                using var jsonDocument = JsonDocument.Parse(responseString);
                 if (jsonDocument.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
                 {
-                    var content = choices[0]
-                                    .GetProperty("message")
-                                    .GetProperty("content")
-                                    .GetString();
-                    return content ?? "Không thể phân tích dữ liệu từ phản hồi của AI.";
+                    return choices[0].GetProperty("message").GetProperty("content").GetString()
+                        ?? "AI không trả về nội dung phân tích.";
                 }
-                return "Phản hồi từ AI không đúng cấu trúc mong đợi.";
             }
 
-            var error = await response.Content.ReadAsStringAsync();
-            return $"Lỗi khi kết nối với AI: {response.StatusCode} - {error}";
+            return "AI tạm thời không phản hồi. Vui lòng thử lại sau.";
+        }
+
+        public async Task<string?> PhanTichTuVanAdvisorAsync(string scoringReport)
+        {
+            var apiKey = _configuration["GroqApi:ApiKey"];
+            var model = _configuration["GroqApi:Model"] ?? "llama3-70b-8192";
+
+            if (string.IsNullOrWhiteSpace(apiKey))
+            {
+                return null;
+            }
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+            var requestBody = new
+            {
+                model,
+                messages = new[]
+                {
+                    new
+                    {
+                        role = "system",
+                        content = @"Bạn là AI Laptop Advisor của BOMIXI.
+Bạn nhận một báo cáo chấm điểm đã được backend tính sẵn. Không bịa thông số ngoài báo cáo.
+Hãy viết bằng tiếng Việt, gọn, rõ, có tính tư vấn.
+Cấu trúc bắt buộc:
+1. Kết luận nhanh
+2. Vì sao máy thắng phù hợp nhất
+3. Khi nào nên chọn máy khác
+4. Cảnh báo ngân sách/tồn kho nếu có
+5. Gợi ý mua hàng cuối cùng"
+                    },
+                    new
+                    {
+                        role = "user",
+                        content = scoringReport
+                    }
+                },
+                temperature = 0.35,
+                max_tokens = 900
+            };
+
+            try
+            {
+                var jsonContent = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
+                var response = await _httpClient.PostAsync("https://api.groq.com/openai/v1/chat/completions", jsonContent);
+                if (!response.IsSuccessStatusCode)
+                {
+                    return null;
+                }
+
+                var responseString = await response.Content.ReadAsStringAsync();
+                using var jsonDocument = JsonDocument.Parse(responseString);
+                if (jsonDocument.RootElement.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0)
+                {
+                    return choices[0].GetProperty("message").GetProperty("content").GetString();
+                }
+            }
+            catch
+            {
+                return null;
+            }
+
+            return null;
         }
     }
 }

@@ -2,9 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopLaptop_v1.Data;
 using ShopLaptop_v1.Extensions;
-using ShopLaptop_v1.Models;
 using ShopLaptop_v1.Services;
-using System.Text;
+using ShopLaptop_v1.ViewModels;
 
 namespace ShopLaptop_v1.Controllers
 {
@@ -12,15 +11,19 @@ namespace ShopLaptop_v1.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly AiCompareService _aiCompareService;
+        private readonly LaptopScoringService _scoringService;
         private const string SO_SANH_KEY = "SoSanh_Session";
 
-        public SoSanhController(ApplicationDbContext context, AiCompareService aiCompareService)
+        public SoSanhController(
+            ApplicationDbContext context,
+            AiCompareService aiCompareService,
+            LaptopScoringService scoringService)
         {
             _context = context;
             _aiCompareService = aiCompareService;
+            _scoringService = scoringService;
         }
 
-        // Lấy danh sách ID sản phẩm đang trong session
         private List<int> GetSoSanhList()
         {
             return HttpContext.Session.Get<List<int>>(SO_SANH_KEY) ?? new List<int>();
@@ -56,6 +59,7 @@ namespace ShopLaptop_v1.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Xoa(int id)
         {
             var dsId = GetSoSanhList();
@@ -66,8 +70,9 @@ namespace ShopLaptop_v1.Controllers
             }
             return RedirectToAction("Index");
         }
-        
+
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult XoaTatCa()
         {
             HttpContext.Session.Remove(SO_SANH_KEY);
@@ -75,7 +80,8 @@ namespace ShopLaptop_v1.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> PhanTichAI(string nhuCau)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PhanTichAI(string? nhuCau, decimal? nganSach, string? mucDich, string? uuTien)
         {
             var dsId = GetSoSanhList();
             if (dsId.Count < 2)
@@ -89,36 +95,34 @@ namespace ShopLaptop_v1.Controllers
                 .Where(p => dsId.Contains(p.Id))
                 .ToListAsync();
 
-            var sb = new StringBuilder();
-            sb.AppendLine($"--- NHU CẦU NGƯỜI DÙNG ---");
-            sb.AppendLine($"- Chi tiết: {nhuCau ?? "Không có mô tả cụ thể."}");
-            sb.AppendLine();
-            sb.AppendLine($"--- DANH SÁCH SẢN PHẨM ---");
-
-            foreach (var sp in danhSachSP)
+            var profile = new LaptopNeedProfile
             {
-                var v = sp.Variants.FirstOrDefault();
-                if (v != null)
-                {
-                    sb.AppendLine($"- Tên máy: {sp.Name} (Hãng: {sp.Category?.Name})");
-                    sb.AppendLine($"  - Giá: {v.DiscountPrice ?? v.Price} VNĐ");
-                    sb.AppendLine($"  - CPU: {v.CPU}");
-                    sb.AppendLine($"  - RAM: {v.RAM}");
-                    sb.AppendLine($"  - Ổ cứng: {v.Storage}");
-                    sb.AppendLine($"  - Màn hình: {v.Screen}");
-                    sb.AppendLine($"  - Card đồ họa: {v.GPU}");
-                    sb.AppendLine($"  - Màu sắc: {v.Color}");
-                    if (!string.IsNullOrEmpty(sp.Description))
-                    {
-                        var shortDesc = sp.Description.Length > 500 ? sp.Description.Substring(0, 500) + "..." : sp.Description;
-                        sb.AppendLine($"  - Mô tả: {shortDesc}");
-                    }
-                    sb.AppendLine();
-                }
+                Budget = nganSach,
+                Purpose = string.IsNullOrWhiteSpace(mucDich) ? "general" : mucDich,
+                Priority = string.IsNullOrWhiteSpace(uuTien) ? "balanced" : uuTien,
+                Details = nhuCau?.Trim() ?? string.Empty
+            };
+
+            var advisorResult = _scoringService.Analyze(danhSachSP, profile);
+            if (!advisorResult.Rankings.Any())
+            {
+                return Json(new { success = false, message = "Không có dữ liệu cấu hình để phân tích." });
             }
 
-            string result = await _aiCompareService.PhanTichSoSanhAsync(sb.ToString());
-            return Json(new { success = true, content = result });
+            var scoringReport = _scoringService.BuildMarkdownReport(advisorResult);
+            var aiExplanation = await _aiCompareService.PhanTichTuVanAdvisorAsync(scoringReport);
+
+            var finalContent = string.IsNullOrWhiteSpace(aiExplanation)
+                ? scoringReport + "\n\n> Ghi chú: Chưa cấu hình API key AI hoặc AI tạm thời không phản hồi, nên hệ thống đang hiển thị kết quả từ thuật toán chấm điểm nội bộ."
+                : scoringReport + "\n\n---\n\n## Tư vấn từ AI\n\n" + aiExplanation;
+
+            return Json(new
+            {
+                success = true,
+                content = finalContent,
+                winnerId = advisorResult.BestOverall?.Product.Id,
+                winnerName = advisorResult.BestOverall?.Product.Name
+            });
         }
     }
 }
