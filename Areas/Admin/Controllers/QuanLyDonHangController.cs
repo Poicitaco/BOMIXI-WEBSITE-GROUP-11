@@ -14,6 +14,7 @@ namespace ShopLaptop_v1.Areas.Admin.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly EmailService _emailService;
+        private readonly WarrantyService _warrantyService;
         private const string GIO_HANG_KEY = "GioHang_Session";
 
         private static readonly Dictionary<string, string[]> ChuyenTrangThaiHopLe = new()
@@ -25,10 +26,11 @@ namespace ShopLaptop_v1.Areas.Admin.Controllers
             ["DaHuy"] = Array.Empty<string>()
         };
 
-        public QuanLyDonHangController(ApplicationDbContext context, EmailService emailService)
+        public QuanLyDonHangController(ApplicationDbContext context, EmailService emailService, WarrantyService warrantyService)
         {
             _context = context;
             _emailService = emailService;
+            _warrantyService = warrantyService;
         }
 
         public async Task<IActionResult> Index(string? trangThai)
@@ -74,6 +76,7 @@ namespace ShopLaptop_v1.Areas.Admin.Controllers
                 .Include(o => o.OrderDetails)
                 .ThenInclude(od => od.ProductVariant)
                 .ThenInclude(pv => pv!.Product)
+                .Include(o => o.Payments)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (donHang == null) return NotFound();
@@ -119,6 +122,11 @@ namespace ShopLaptop_v1.Areas.Admin.Controllers
             if (trangThaiMoi == "DangXuLy" && trangThaiCu == "ChoXacNhan")
             {
                 await _emailService.SendOrderConfirmationEmailAsync(donHang);
+            }
+
+            if (trangThaiMoi == "HoanThanh")
+            {
+                await _warrantyService.IssueForCompletedOrderAsync(donHang);
             }
 
             return Json(new { success = true, trangThai = trangThaiMoi });

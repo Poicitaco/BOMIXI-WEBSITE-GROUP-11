@@ -1,0 +1,78 @@
+@model List<ShopLaptop_v1.Models.WarrantyCertificate>
+@{
+    ViewData["Title"] = "Web3 Warranty";
+    var wallet = ViewData["Wallet"] as ShopLaptop_v1.Models.WalletAddress;
+}
+
+<div class="max-w-[1100px] mx-auto px-8 py-12">
+    <div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-3xl p-8 mb-8">
+        <p class="text-[10px] uppercase tracking-[0.3em] text-accent-cyber-lime font-bold mb-2">BOMIXI WEB3 DEMO</p>
+        <h1 class="font-['Space_Grotesk'] text-4xl font-black text-white mb-4">Ví Web3 & Digital Warranty</h1>
+        <p class="text-gray-400 mb-6">Liên kết MetaMask để gắn chứng nhận bảo hành số với tài khoản của bạn. Đây là mô phỏng Web3 dùng cho demo đồ án.</p>
+
+        <div class="flex flex-col md:flex-row gap-4 items-start md:items-center">
+            <button onclick="connectWallet()" class="bg-accent-cyber-lime text-black font-['Space_Grotesk'] font-black px-6 py-3 rounded-xl uppercase tracking-widest text-xs">
+                Connect MetaMask
+            </button>
+            <div id="wallet-status" class="text-sm text-gray-400">
+                @(wallet != null ? $"Ví hiện tại: {wallet.Address}" : "Chưa liên kết ví")
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-3xl p-8">
+        <h2 class="font-['Space_Grotesk'] text-2xl font-bold text-white mb-6">Chứng nhận bảo hành số</h2>
+        @if (!Model.Any())
+        {
+            <div class="text-center py-16 text-gray-500">
+                <span class="material-symbols-outlined text-6xl text-[#252525] block mb-4">verified</span>
+                Chưa có chứng nhận. Khi đơn hàng hoàn thành, hệ thống sẽ tự phát hành Digital Warranty Certificate.
+            </div>
+        }
+        else
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach (var cert in Model)
+                {
+                    <div class="border border-[#252525] rounded-2xl p-5 bg-black/30">
+                        <div class="flex justify-between gap-4 mb-3">
+                            <h3 class="font-['Space_Grotesk'] font-bold text-white">@cert.ProductName</h3>
+                            <span class="text-accent-cyber-lime text-xs font-bold">ACTIVE</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-3">@cert.VariantSnapshot</p>
+                        <div class="space-y-2 text-xs text-gray-400 font-mono">
+                            <p>Certificate: <span class="text-white">@cert.CertificateCode</span></p>
+                            <p>Token: <span class="text-white">@cert.TokenId</span></p>
+                            <p>Tx: <span class="text-accent-cyber-lime break-all">@cert.BlockchainTxHash</span></p>
+                            <p>Hạn bảo hành: <span class="text-white">@cert.ExpiresAt.ToString("dd/MM/yyyy")</span></p>
+                        </div>
+                        <a asp-action="Verify" asp-route-code="@cert.CertificateCode" class="inline-flex mt-4 text-xs text-accent-cyber-lime hover:underline">Tra cứu công khai</a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<script>
+async function connectWallet() {
+    const status = document.getElementById('wallet-status');
+    if (!window.ethereum) {
+        status.textContent = 'Chưa cài MetaMask. Có thể cài extension hoặc dùng ví demo.';
+        return;
+    }
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const address = accounts[0];
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+    const res = await fetch('/Web3/LinkWallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token || '' },
+        body: `address=${encodeURIComponent(address)}`
+    });
+    const data = await res.json();
+    status.textContent = data.message + ' ' + (data.address || '');
+}
+</script>
+@Html.AntiForgeryToken()
+}

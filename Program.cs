@@ -41,6 +41,7 @@ builder.Services.AddHttpClient<ShopLaptop_v1.Services.EmailService>();
 builder.Services.AddScoped<ShopLaptop_v1.Services.SystemSettingService>();
 builder.Services.AddScoped<ShopLaptop_v1.Services.CartService>();
 builder.Services.AddScoped<ShopLaptop_v1.Services.CouponService>();
+builder.Services.AddScoped<ShopLaptop_v1.Services.WarrantyService>();
 
 var app = builder.Build();
 
