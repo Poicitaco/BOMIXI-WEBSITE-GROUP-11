@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShopLaptop_v1.Data;
-using ShopLaptop_v1.Extensions;
 using ShopLaptop_v1.Models;
 
 namespace ShopLaptop_v1.Controllers
@@ -13,7 +12,6 @@ namespace ShopLaptop_v1.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private const string GIO_HANG_KEY = "GioHang_Session";
 
         public DanhGiaController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
@@ -21,26 +19,41 @@ namespace ShopLaptop_v1.Controllers
             _userManager = userManager;
         }
 
-        // Gửi đánh giá sản phẩm
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> GuiDanhGia(int maSanPham, int soSao, string? nhanXet)
         {
             var nguoiDung = await _userManager.GetUserAsync(User);
-            if (nguoiDung == null) return Json(new { success = false, thongBao = "Vui lòng đăng nhập" });
+            if (nguoiDung == null)
+                return Json(new { success = false, thongBao = "Vui lòng đăng nhập." });
 
             if (soSao < 1 || soSao > 5)
-                return Json(new { success = false, thongBao = "Số sao không hợp lệ" });
+                return Json(new { success = false, thongBao = "Số sao không hợp lệ." });
 
-            // Kiểm tra đã đánh giá chưa
+            if (!string.IsNullOrWhiteSpace(nhanXet) && nhanXet.Length > 500)
+                return Json(new { success = false, thongBao = "Nhận xét tối đa 500 ký tự." });
+
+            var daMuaHang = await _context.Orders
+                .Where(o => o.UserId == nguoiDung.Id && o.Status == "HoanThanh")
+                .SelectMany(o => o.OrderDetails)
+                .AnyAsync(d => d.ProductVariant != null && d.ProductVariant.ProductId == maSanPham);
+
+            if (!daMuaHang)
+            {
+                return Json(new { success = false, thongBao = "Chỉ khách hàng đã mua và nhận sản phẩm mới có thể đánh giá." });
+            }
+
             var danhGiaCu = await _context.DanhGias
                 .FirstOrDefaultAsync(d => d.ProductId == maSanPham && d.UserId == nguoiDung.Id);
 
             if (danhGiaCu != null)
             {
-                // Cập nhật đánh giá cũ
                 danhGiaCu.SoSao = soSao;
-                danhGiaCu.NhanXet = nhanXet;
+                danhGiaCu.NhanXet = nhanXet?.Trim();
                 danhGiaCu.NgayDanhGia = DateTime.Now;
+                danhGiaCu.DaMuaHang = true;
+                danhGiaCu.DangHienThi = true;
+                danhGiaCu.GhiChuKiemDuyet = null;
             }
             else
             {
@@ -49,24 +62,23 @@ namespace ShopLaptop_v1.Controllers
                     ProductId = maSanPham,
                     UserId = nguoiDung.Id,
                     SoSao = soSao,
-                    NhanXet = nhanXet,
-                    NgayDanhGia = DateTime.Now
+                    NhanXet = nhanXet?.Trim(),
+                    NgayDanhGia = DateTime.Now,
+                    DaMuaHang = true,
+                    DangHienThi = true
                 });
             }
 
             await _context.SaveChangesAsync();
 
-            // Tính điểm trung bình mới
-            var trungBinh = await _context.DanhGias
-                .Where(d => d.ProductId == maSanPham)
-                .AverageAsync(d => (double)d.SoSao);
+            var visibleReviews = _context.DanhGias.Where(d => d.ProductId == maSanPham && d.DangHienThi);
+            var tongDanhGia = await visibleReviews.CountAsync();
+            var trungBinh = tongDanhGia > 0 ? await visibleReviews.AverageAsync(d => (double)d.SoSao) : 0;
 
-            var tongDanhGia = await _context.DanhGias
-                .CountAsync(d => d.ProductId == maSanPham);
-
-            return Json(new {
+            return Json(new
+            {
                 success = true,
-                thongBao = "Cảm ơn bạn đã đánh giá!",
+                thongBao = "Cảm ơn bạn đã đánh giá sản phẩm!",
                 trungBinh = Math.Round(trungBinh, 1),
                 tongDanhGia
             });
