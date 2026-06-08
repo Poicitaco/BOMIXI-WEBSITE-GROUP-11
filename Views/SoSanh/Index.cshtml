@@ -183,6 +183,34 @@
                                 </div>
                             </div>
                             
+                            @Html.AntiForgeryToken()
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                <div>
+                                    <label class="font-['Space_Grotesk'] text-[10px] uppercase tracking-[0.2em] text-gray-500 block mb-3 font-bold">Ngân sách tối đa</label>
+                                    <input id="ai-budget" type="number" min="0" step="1000000" placeholder="VD: 30000000"
+                                           class="ai-input-fix w-full rounded-2xl px-5 py-4 outline-none transition-all text-sm" />
+                                </div>
+                                <div>
+                                    <label class="font-['Space_Grotesk'] text-[10px] uppercase tracking-[0.2em] text-gray-500 block mb-3 font-bold">Mục đích chính</label>
+                                    <select id="ai-purpose" class="ai-input-fix w-full rounded-2xl px-5 py-4 outline-none transition-all text-sm">
+                                        <option value="general">Đa dụng</option>
+                                        <option value="gaming">Gaming</option>
+                                        <option value="coding">Lập trình / học CNTT</option>
+                                        <option value="design">Đồ họa / render</option>
+                                        <option value="office">Văn phòng / học tập</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="font-['Space_Grotesk'] text-[10px] uppercase tracking-[0.2em] text-gray-500 block mb-3 font-bold">Ưu tiên</label>
+                                    <select id="ai-priority" class="ai-input-fix w-full rounded-2xl px-5 py-4 outline-none transition-all text-sm">
+                                        <option value="balanced">Cân bằng</option>
+                                        <option value="performance">Hiệu năng mạnh nhất</option>
+                                        <option value="budget">Tối ưu ngân sách</option>
+                                        <option value="display">Màn hình đẹp</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
                                 <div class="lg:col-span-3">
                                     <label class="font-['Space_Grotesk'] text-[10px] uppercase tracking-[0.2em] text-gray-500 block mb-3 font-bold">Nhu cầu cụ thể của bạn</label>
@@ -238,6 +266,9 @@
             content.innerHTML = '';
             
             const needs = document.getElementById('ai-needs').value;
+            const budget = document.getElementById('ai-budget').value;
+            const purpose = document.getElementById('ai-purpose').value;
+            const priority = document.getElementById('ai-priority').value;
             
             try {
                 const response = await fetch('/SoSanh/PhanTichAI', {
@@ -246,7 +277,7 @@
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
                     },
-                    body: `nhuCau=${encodeURIComponent(needs)}`
+                    body: `nhuCau=${encodeURIComponent(needs)}&nganSach=${encodeURIComponent(budget)}&mucDich=${encodeURIComponent(purpose)}&uuTien=${encodeURIComponent(priority)}`
                 });
                 
                 if (!response.ok) {
@@ -261,6 +292,9 @@
 
                 if (data.success) {
                     content.innerHTML = marked.parse(data.content);
+                    if (data.winnerName && typeof showToast === 'function') {
+                        showToast('AI đề xuất: ' + data.winnerName, 'success');
+                    }
                     // Scroll to result
                     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } else {

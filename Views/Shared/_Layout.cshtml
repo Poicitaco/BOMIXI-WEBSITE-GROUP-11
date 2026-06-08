@@ -142,6 +142,9 @@
             <!-- Yeu thich -->
             @if (User.Identity!.IsAuthenticated)
             {
+                <a asp-controller="Web3" asp-action="Wallet" class="text-white hover:text-accent-cyber-lime transition-colors relative" title="Web3 Warranty">
+                    <span class="material-symbols-outlined">verified_user</span>
+                </a>
                 <a asp-controller="YeuThich" asp-action="Index" class="text-white hover:text-accent-cyber-lime transition-colors relative" id="yeu-thich-icon" title="Sản phẩm yêu thích">
                     <span class="material-symbols-outlined" id="yeu-thich-icon-span">favorite</span>
                     <span class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full items-center justify-center hidden" id="yeu-thich-count">0</span>
@@ -190,6 +193,9 @@
                             </a>
                             <a asp-controller="DonHang" asp-action="DanhSach" class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-[#1A1A1A] hover:text-white transition-colors">
                                 <span class="material-symbols-outlined text-[18px] mr-3 text-gray-400">receipt_long</span>Lịch sử mua hàng
+                            </a>
+                            <a asp-controller="Web3" asp-action="Wallet" class="flex items-center px-4 py-2.5 text-sm text-gray-300 hover:bg-[#1A1A1A] hover:text-white transition-colors">
+                                <span class="material-symbols-outlined text-[18px] mr-3 text-gray-400">verified_user</span>Web3 Warranty
                             </a>
                         </div>
 

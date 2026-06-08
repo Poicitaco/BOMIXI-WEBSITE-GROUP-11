@@ -1,0 +1,30 @@
+@{
+    ViewData["Title"] = "Báo cáo hệ thống";
+    var lowStock = ViewData["LowStock"] as List<ShopLaptop_v1.Models.ProductVariant> ?? new();
+    string Money(decimal value) => value.ToString("N0") + " VNĐ";
+}
+
+<div class="flex justify-between items-end mb-8">
+    <div><h1 class="font-['Space_Grotesk'] text-3xl font-black">Báo cáo hệ thống</h1><p class="text-gray-500 text-sm">Số liệu phục vụ quản trị và thuyết trình</p></div>
+    <a asp-action="XuatDoanhThuCsv" class="bg-accent-cyber-lime text-black px-5 py-3 rounded-lg text-xs font-bold">Xuất doanh thu CSV</a>
+</div>
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl p-5"><p class="text-gray-500 text-xs">Tổng doanh thu</p><p class="text-accent-cyber-lime font-black text-xl">@Money((decimal)(ViewData["Revenue"] ?? 0m))</p></div>
+    <div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl p-5"><p class="text-gray-500 text-xs">Đã giảm giá</p><p class="text-white font-black text-xl">@Money((decimal)(ViewData["Discount"] ?? 0m))</p></div>
+    <div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl p-5"><p class="text-gray-500 text-xs">Khách hàng</p><p class="text-white font-black text-2xl">@ViewData["Customers"]</p></div>
+    <div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl p-5"><p class="text-gray-500 text-xs">Warranty NFT Demo</p><p class="text-white font-black text-2xl">@ViewData["Certificates"]</p></div>
+</div>
+
+<div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl p-6">
+    <h2 class="font-bold text-white mb-4">Cảnh báo tồn kho</h2>
+    <div class="space-y-3">
+    @foreach (var item in lowStock)
+    {
+        <div class="flex justify-between border-b border-[#1A1A1A] pb-3 text-sm">
+            <span class="text-gray-300">@item.Product?.Name · @item.SKU</span>
+            <span class="@(item.StockQuantity == 0 ? "text-red-400" : "text-yellow-400")">@item.StockQuantity sản phẩm</span>
+        </div>
+    }
+    </div>
+</div>

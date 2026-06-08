@@ -1,0 +1,47 @@
+@model List<ShopLaptop_v1.Models.DanhGia>
+@{
+    ViewData["Title"] = "Kiểm duyệt đánh giá";
+}
+
+<div class="mb-6">
+    <h1 class="font-['Space_Grotesk'] text-3xl font-black">Kiểm duyệt đánh giá</h1>
+    <p class="text-gray-500 text-sm">Ẩn/hiện đánh giá và xác minh người mua hàng</p>
+</div>
+
+<div class="space-y-4">
+@foreach (var review in Model)
+{
+    <div class="bg-[#0D0D0D] border border-[#1A1A1A] rounded-xl p-5 flex flex-col md:flex-row gap-5 justify-between">
+        <div>
+            <div class="flex gap-3 items-center mb-2">
+                <span class="text-yellow-400">@(new string('★', review.SoSao))</span>
+                @if (review.DaMuaHang) { <span class="text-[10px] text-accent-cyber-lime border border-accent-cyber-lime/30 px-2 py-1 rounded">ĐÃ MUA HÀNG</span> }
+                <span id="review-status-@review.Id" class="text-[10px] @(review.DangHienThi ? "text-green-400" : "text-red-400")">@(review.DangHienThi ? "ĐANG HIỂN THỊ" : "ĐÃ ẨN")</span>
+            </div>
+            <h3 class="font-bold text-white">@review.Product?.Name</h3>
+            <p class="text-gray-400 text-sm my-2">@(review.NhanXet ?? "Không có nhận xét")</p>
+            <p class="text-xs text-gray-600">@review.User?.Email · @review.NgayDanhGia.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+        <button onclick="toggleReview(@review.Id)" class="border border-[#333] px-4 py-2 rounded-lg text-xs h-fit hover:border-accent-cyber-lime">
+            @(review.DangHienThi ? "Ẩn đánh giá" : "Hiện đánh giá")
+        </button>
+    </div>
+}
+</div>
+
+@section Scripts {
+<script>
+async function toggleReview(id) {
+    const reason = prompt('Ghi chú kiểm duyệt (có thể để trống):') || '';
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+    const res = await fetch('/Admin/QuanLyDanhGia/DoiHienThi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token || '' },
+        body: `id=${id}&ghiChu=${encodeURIComponent(reason)}`
+    });
+    const data = await res.json();
+    if (data.success) location.reload(); else alert(data.message);
+}
+</script>
+@Html.AntiForgeryToken()
+}

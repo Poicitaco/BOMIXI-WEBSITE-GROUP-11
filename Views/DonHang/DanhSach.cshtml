@@ -102,7 +102,7 @@
                         <div class="flex-1">
                             <div class="flex flex-wrap items-center gap-4 mb-3">
                                 <h3 class="font-['Space_Grotesk'] font-bold text-white text-2xl tracking-wider">
-                                    <span class="text-gray-600">#</span>@dh.Id
+                                    <span class="text-gray-600">#</span>@(dh.OrderNumber ?? dh.Id.ToString())
                                 </h3>
                                 <div class="flex items-center gap-1.5 px-3 py-1 rounded-full border @MauTrangThai(dh.Status)">
                                     <span class="material-symbols-outlined text-[14px]">@IconTrangThai(dh.Status)</span>
@@ -138,9 +138,18 @@
                                 </div>
                             </div>
                             
-                            <a asp-action="ChiTiet" asp-route-id="@dh.Id" class="btn-cyber-outline w-full lg:w-auto">
-                                <span class="material-symbols-outlined text-[18px]">terminal</span> CHI TIẾT
-                            </a>
+                            <div class="flex flex-col gap-3 w-full lg:w-auto">
+                                <a asp-action="ChiTiet" asp-route-id="@dh.Id" class="btn-cyber-outline w-full lg:w-auto">
+                                    <span class="material-symbols-outlined text-[18px]">terminal</span> CHI TIẾT
+                                </a>
+                                @if (dh.Status == "ChoXacNhan")
+                                {
+                                    <button onclick="huyDon(@dh.Id)"
+                                            class="w-full lg:w-auto font-['Space_Grotesk'] text-[10px] tracking-[0.2em] font-bold uppercase text-red-400 border border-red-500/30 bg-red-500/5 hover:bg-red-500 hover:text-white px-4 py-3 rounded-lg transition-all">
+                                        HỦY ĐƠN
+                                    </button>
+                                }
+                            </div>
                         </div>
                     </div>
                 }
@@ -148,3 +157,21 @@
         }
     </div>
 </div>
+
+@section Scripts {
+<script>
+async function huyDon(id) {
+    if (!confirm('Bạn chắc chắn muốn hủy đơn hàng này? Tồn kho sẽ được hoàn lại.')) return;
+    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+    const res = await fetch('/DonHang/HuyDon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token || '' },
+        body: `id=${id}&lyDo=${encodeURIComponent('Khách hàng hủy từ trang danh sách đơn hàng')}`
+    });
+    const data = await res.json();
+    alert(data.message || (data.success ? 'Đã hủy đơn.' : 'Không thể hủy đơn.'));
+    if (data.success) location.reload();
+}
+</script>
+@Html.AntiForgeryToken()
+}
